@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NeuroSage Hub — Heterogeneity Intake · v1.3.4</title>
+<title>NeuroSage Hub — Heterogeneity Intake · v1.3.5</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -747,39 +747,8 @@ h1 em {
 }
 .clinical-disclaimer strong { color: var(--ink); }
 
-/* ============ Mode gate: parent vs clinician ============ */
-.mode-toggle {
-  display: inline-flex;
-  background: var(--bg-soft);
-  border: 1px solid var(--line);
-  border-radius: 7px;
-  padding: 2px;
-  gap: 0;
-}
-.mode-btn {
-  font-family: var(--sans);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  padding: 5px 12px;
-  border: 0;
-  background: transparent;
-  color: var(--ink-mute);
-  cursor: pointer;
-  border-radius: 5px;
-  transition: background 0.15s, color 0.15s;
-  font-variant-numeric: tabular-nums;
-}
-.mode-btn:hover { color: var(--ink-soft); }
-.mode-btn[aria-pressed="true"] {
-  background: var(--sage-deep);
-  color: var(--bg);
-}
-.mode-btn[data-mode="clinician"][aria-pressed="true"] {
-  background: var(--terra);
-}
 .result-thanks {
-  display: none;
+  display: block;
   text-align: center;
   padding: 36px 24px 24px;
 }
@@ -819,13 +788,6 @@ h1 em {
   font-style: italic;
   font-family: var(--serif);
 }
-.result.parent-mode .result-eyebrow,
-.result.parent-mode .result-archetype-row,
-.result.parent-mode .result-auto,
-.result.parent-mode .result-block,
-.result.parent-mode .clinical-disclaimer { display: none; }
-.result.parent-mode .result-thanks { display: block; }
-.result.parent-mode .eligibility-banner { display: flex; }  /* v1.3.1: show in both modes */
 
 footer.foot {
   margin-top: 80px;
@@ -859,10 +821,6 @@ footer.foot code { font-family: ui-monospace, monospace; color: var(--sage); }
     <div class="progress-brand">NeuroSage Hub <em>· Heterogeneity Intake</em></div>
     <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
     <div class="progress-count"><strong id="progress-answered">0</strong> / 121 answered</div>
-    <div class="mode-toggle" role="tablist" aria-label="View mode">
-      <button class="mode-btn" data-mode="parent" type="button" aria-pressed="true">Parent</button>
-      <button class="mode-btn" data-mode="clinician" type="button" aria-pressed="false">Clinician</button>
-    </div>
   </div>
 </div>
 
@@ -879,7 +837,7 @@ footer.foot code { font-family: ui-monospace, monospace; color: var(--sage); }
     <div class="eyebrow">Heterogeneity Intake · 121 questions</div>
     <h1>Tell us about <em>your child</em>.</h1>
     <p class="lede">
-      This intake gathers a complete picture of your child's nervous system, behaviour, and history. Your answers feed a clinical routing engine that helps Dr. Kyle identify whether your child is a candidate for our <strong>8-week home intensive</strong> (1.5-3 hours daily, Monday-Friday, weekends off) or our <strong>consult-track program</strong> for children who need additional clinical work first.
+      This intake gathers a complete picture of your child's nervous system, behaviour, and history — what's going well, what's been hard, what you've noticed change over time. Your answers help Dr. Kyle's team understand your child before you ever speak to them, so that first conversation is focused on your child specifically rather than starting from scratch.
       <br><br>
       <strong>Score each item from 0 to 4</strong>, based on how often or how severely it applies. The form takes about 20-30 minutes and saves automatically — you can close it and return later.
     </p>
@@ -904,11 +862,11 @@ footer.foot code { font-family: ui-monospace, monospace; color: var(--sage); }
   <div class="scale-legend">
     <div class="scale-legend-title">Scoring scale</div>
     <div class="scale-legend-items">
-      <span><strong>0</strong> Never</span>
-      <span><strong>1</strong> Rarely</span>
-      <span><strong>2</strong> Sometimes</span>
-      <span><strong>3</strong> Often</span>
-      <span><strong>4</strong> Always / severe</span>
+      <span><strong>0</strong> Never / doesn't apply</span>
+      <span><strong>1</strong> Once or twice ever</span>
+      <span><strong>2</strong> Monthly or mild when present</span>
+      <span><strong>3</strong> Weekly or moderate when present</span>
+      <span><strong>4</strong> Daily / always / severe</span>
     </div>
   </div>
 
@@ -994,7 +952,7 @@ footer.foot code { font-family: ui-monospace, monospace; color: var(--sage); }
       </div>
 
       <div class="toggle-group">
-        <div class="toggle-group-title">Current health (v1.3.2)</div>
+        <div class="toggle-group-title">Current health</div>
         <div class="toggle-row">
           <label class="toggle safety"><input type="checkbox" data-hist="currently_ill_or_recovering_48h"><span class="toggle-dot"></span>Currently ill, febrile, or recovering from illness in the last 48 hours</label>
           <label class="toggle"><input type="checkbox" data-hist="recent_illness_30d"><span class="toggle-dot"></span>Significant illness or hospitalization in the past 30 days (now recovered)</label>
@@ -1002,7 +960,7 @@ footer.foot code { font-family: ui-monospace, monospace; color: var(--sage); }
       </div>
 
       <div class="toggle-group">
-        <div class="toggle-group-title">Severe sleep pattern (v1.3.2 — check all that apply)</div>
+        <div class="toggle-group-title">Severe sleep pattern (check all that apply)</div>
         <div class="toggle-row">
           <label class="toggle safety"><input type="checkbox" data-hist="sleep_lt_4hr_2wk"><span class="toggle-dot"></span>Less than 4 hours total nightly sleep, consistently, for 2+ weeks</label>
           <label class="toggle safety"><input type="checkbox" data-hist="sleep_reversal"><span class="toggle-dot"></span>Complete sleep-wake reversal (sleeps days, awake nights)</label>
@@ -1046,62 +1004,10 @@ footer.foot code { font-family: ui-monospace, monospace; color: var(--sage); }
         <div class="eligibility-meta" id="eligibility-meta"></div>
       </div>
     </div>
-
-    <div class="result-eyebrow">Engine output · schema v1.2.4 · engine v1.3.1</div>
-
-    <div class="result-archetype-row">
-      <div>
-        <div class="result-archetype" id="out-archetype">—</div>
-        <div class="result-subtype" id="out-subtype"></div>
-      </div>
-      <div class="result-sev" id="out-severity"></div>
-    </div>
-
-    <div class="result-auto" id="out-auto"></div>
-
-    <div class="result-block">
-      <h4>Phenotype severity (parent intake)</h4>
-      <div class="phenotype-scores" id="out-pheno-scores"></div>
-    </div>
-
-    <div class="result-block">
-      <h4>Modifier flags</h4>
-      <div class="flags-row" id="out-flags"></div>
-    </div>
-
-    <div class="result-block">
-      <h4>History flags activated</h4>
-      <div class="flags-row" id="out-history"></div>
-    </div>
-
-    <div class="result-block">
-      <h4>Safety gates fired</h4>
-      <div class="flags-row" id="out-safety"></div>
-    </div>
-
-    <div class="result-block">
-      <h4>Critical-item overrides fired</h4>
-      <div class="flags-row" id="out-overrides"></div>
-    </div>
-
-    <div class="result-block">
-      <h4>NBSS Brain Stress Hierarchy</h4>
-      <div id="out-nbss"></div>
-      <div id="out-patterns" style="margin-top:12px"></div>
-    </div>
-
-    <div class="result-block">
-      <h4>Routing trace</h4>
-      <ul class="trace-list" id="out-notes"></ul>
-    </div>
-
-    <div class="clinical-disclaimer">
-      <strong>Not a diagnosis.</strong> This routing is a first-pass clinical preview and requires clinician confirmation before any auto-generated routine. Daily companion app routines are gated by Dr. Kyle's review.
-    </div>
   </section>
 
   <footer class="foot">
-    <p>NeuroSage Hub · Heterogeneity Intake · Form <code>v1.3.2</code> · Schema <code>v1.3.2</code> · Engine <code>v1.3.2</code> · 121 questions across 12 phenotypes · 8-week home intensive + consult-track product model · Kyle decisions wired (acute_illness_fever, severe_sleep_collapse, NBSS V1/V2 separation) 2026-05-21</p>
+    <p>NeuroSage Hub · Heterogeneity Intake · Form <code>v1.3.5</code> · Engine <code>v1.3.2</code> · 121 questions across 12 phenotypes</p>
   </footer>
 </div>
 
@@ -1305,8 +1211,10 @@ const STORAGE_KEY = 'neurosage_intake_v1_0';
 
 // v1.3.3: GHL webhook config — production endpoint for NeuroHome sub-account
 const GHL_WEBHOOK_URL = 'https://services.leadconnectorhq.com/hooks/OzXiG0YQaeEKh2w5XeyU/webhook-trigger/4c769438-be07-4700-835b-48961cc6885a';
-const INTAKE_FORM_VERSION = 'v1.3.4';
-const INTAKE_ENGINE_VERSION = 'v1.3.1';
+const INTAKE_FORM_VERSION = 'v1.3.5';
+// Engine version reflects routing-logic schema, not form-shell version.
+// v1.3.2 = acute_illness_fever + severe_sleep_collapse safety gates wired, recent_illness_watch modifier flag.
+const INTAKE_ENGINE_VERSION = 'v1.3.2';
 
 // v1.3.4: submit state machine. Prevents double-submission while a POST is in flight.
 // Transitions: 'idle' -> 'submitting' -> ('submitted_success' [terminal] | 'submitted_failed' -> 'idle' via retry)
@@ -1326,7 +1234,6 @@ const state = {
   age: 5,
   email: '',         // v1.3.3: parent email, required for GHL submission
   contactId: '',     // v1.3.3: GHL contact ID, optional (from magic-link URL param)
-  clinicianMode: false,  // set during loadFromStorage from localStorage / URL
 };
 
 function loadFromStorage() {
@@ -1341,15 +1248,11 @@ function loadFromStorage() {
       state.age = parsed.age || 5;
       state.email = parsed.email || '';
       state.contactId = parsed.contactId || '';
-      state.clinicianMode = parsed.clinicianMode === true;
     }
   } catch (e) { /* corrupt or absent — ignore */ }
-  // URL param overrides on initial load (handy for sharing a clinician-view link)
+  // URL param overrides on initial load
   if (typeof window !== 'undefined' && window.location && window.location.search) {
     const params = new URLSearchParams(window.location.search);
-    if (/[?&]mode=clinician\b/.test(window.location.search)) {
-      state.clinicianMode = true;
-    }
     // v1.3.3: magic-link prefill from call-confirmation email
     const urlEmail = params.get('email');
     if (urlEmail) state.email = urlEmail;
@@ -1406,11 +1309,11 @@ function buildSections() {
     scale.className = 'section-scale';
     scale.setAttribute('aria-hidden', 'true');
     scale.innerHTML = `
-      <span class="section-scale-item"><span class="section-scale-num">0</span>Never</span>
-      <span class="section-scale-item"><span class="section-scale-num">1</span>Rarely</span>
-      <span class="section-scale-item"><span class="section-scale-num">2</span>Sometimes</span>
-      <span class="section-scale-item"><span class="section-scale-num">3</span>Often</span>
-      <span class="section-scale-item"><span class="section-scale-num">4</span>Always/severe</span>
+      <span class="section-scale-item"><span class="section-scale-num">0</span>Never / N/A</span>
+      <span class="section-scale-item"><span class="section-scale-num">1</span>Once or twice ever</span>
+      <span class="section-scale-item"><span class="section-scale-num">2</span>Monthly / mild</span>
+      <span class="section-scale-item"><span class="section-scale-num">3</span>Weekly / moderate</span>
+      <span class="section-scale-item"><span class="section-scale-num">4</span>Daily / severe</span>
     `;
     sec.appendChild(scale);
 
@@ -1835,7 +1738,6 @@ function classify() {
     const consult_track = !home_intensive_candidate;
 
     result = { arch, subtype, flags, historyFlags, safetyFired, overrides, autoRoute, home_intensive_candidate, consult_track, nbss, notes, pcts };
-    state._lastResult = result; // v1.3.4: cache for applyModeUI re-render on mode toggle
     render(result);
   } catch (e) {
     // Routing engine threw — release the lock so user can retry. Don't fire the webhook with bad data.
@@ -1978,7 +1880,7 @@ function setSubmitButtonPhase(phase) {
   switch (phase) {
     case 'idle':
       btn.disabled = false;
-      btn.textContent = state.clinicianMode ? 'Generate clinical routing' : 'Submit intake';
+      btn.textContent = 'Submit intake';
       break;
     case 'submitting':
       btn.disabled = true;
@@ -2021,75 +1923,13 @@ function showInlineSubmitNote(text) {
 // ============================================================
 function render(r) {
   const resultPanel = document.getElementById('result');
-  resultPanel.classList.toggle('parent-mode', !state.clinicianMode);
 
-  // v1.3.1: populate eligibility banner + branched thanks message (both run in parent + clinician mode)
+  // v1.3.1: populate eligibility banner + branched thanks message
   populateEligibilityBanner(r);
   populateThanksMessage(r);
 
-  // Parent mode: only the thanks block + eligibility banner render. Skip clinical population entirely.
-  if (!state.clinicianMode) {
-    resultPanel.classList.add('show');
-    setTimeout(() => resultPanel.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
-    return;
-  }
-
-  const an = ARCHETYPE_NAMES[r.arch] || { name: r.arch, sev: '—' };
-  document.getElementById('out-archetype').textContent = an.name;
-  document.getElementById('out-subtype').textContent = r.subtype || '';
-  const sev = document.getElementById('out-severity');
-  sev.textContent = an.sev;
-  sev.className = 'result-sev sev-' + (an.sev.split('/')[0] || '');
-
-  const auto = document.getElementById('out-auto');
-  auto.textContent = r.autoRoute ? '✓ Auto-routine allowed post-confirmation' : '✕ Clinician-built plan required';
-  auto.className = 'result-auto ' + (r.autoRoute ? 'yes' : 'no');
-
-  // Phenotype severity grid
-  const ps = document.getElementById('out-pheno-scores');
-  ps.innerHTML = '';
-  PHENOTYPE_QUESTIONS.forEach(p => {
-    const pct = r.pcts[p.id];
-    const band = bandOf(pct);
-    const row = document.createElement('div');
-    row.className = 'ps-row band-' + band;
-    row.innerHTML = `
-      <div class="ps-code">${p.code}</div>
-      <div class="ps-name">${p.name}</div>
-      <div class="ps-meta">
-        <span class="ps-pct">${pct}%</span>
-        <span class="ps-band band-${band}">${band.replace('_', ' ')}</span>
-      </div>
-    `;
-    ps.appendChild(row);
-  });
-
-  renderFlags('out-flags', r.flags, 'No modifier flags', 'flag');
-  renderFlags('out-history', r.historyFlags, 'No history flags', 'flag history');
-  renderFlags('out-safety', r.safetyFired, 'No safety gates fired', 'flag safety');
-  renderFlags('out-overrides', r.overrides.notes, 'No critical overrides fired', 'flag override');
-
-  const nbssEl = document.getElementById('out-nbss');
-  nbssEl.innerHTML = '';
-  NBSS_DOMAINS.forEach(d => {
-    const score = r.nbss.domains[d] || 0;
-    const row = document.createElement('div');
-    row.className = 'nbss-row';
-    row.innerHTML = `<span class="nbss-name">${d}</span><span class="nbss-score nbss-${score}">${score} / 4</span>`;
-    nbssEl.appendChild(row);
-  });
-  document.getElementById('out-patterns').innerHTML = r.nbss.patterns.map(p => `<div class="pattern">${p}</div>`).join('');
-
-  const notesEl = document.getElementById('out-notes');
-  notesEl.innerHTML = '';
-  r.notes.forEach(n => {
-    const li = document.createElement('li');
-    li.textContent = n;
-    notesEl.appendChild(li);
-  });
-
-  document.getElementById('result').classList.add('show');
-  setTimeout(() => document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+  resultPanel.classList.add('show');
+  setTimeout(() => resultPanel.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
 }
 
 // ============================================================
@@ -2105,19 +1945,14 @@ function populateEligibilityBanner(r) {
   if (r.home_intensive_candidate) {
     banner.className = 'eligibility-banner eligible';
     icon.textContent = '✓';
-    title.textContent = 'Home Intensive Candidate';
-    sub.textContent = "Based on this intake, your child fits our 8-week home intensive program. Daily commitment is 1.5 to 3 hours, Monday through Friday — weekends off.";
-    meta.innerHTML = '<span class="time-tag">LIGHT · ~1.5 hr/day</span><span class="time-tag">MID · ~2 hr/day</span><span class="time-tag">HIGH · ~3 hr/day</span>';
+    title.textContent = 'Strong fit for our 8-week home intensive';
+    sub.textContent = "Based on your answers, our home intensive program looks like a strong match for your child. Dr. Kyle's team will review your intake and reach out about next steps.";
+    meta.innerHTML = '';
   } else {
     banner.className = 'eligibility-banner consult';
     icon.textContent = '→';
-    title.textContent = 'Consult Track Recommended';
-    const an = ARCHETYPE_NAMES[r.arch] || { name: r.arch };
-    if (r.safetyFired.length > 0) {
-      sub.textContent = `Safety gate active (${r.safetyFired.join(', ')}). Your child needs clinical attention before any home intensive program. Dr. Kyle's team will reach out to discuss the right next steps.`;
-    } else {
-      sub.textContent = `Your child's profile (${an.name}) needs regulation, biomedical, or structural work first. The 8-week home intensive is designed for Foundational and Sensory-Motor patterns — everyone else gets a custom consult-driven path.`;
-    }
+    title.textContent = "Let's talk through your child's picture together";
+    sub.textContent = "Thanks for taking the time to walk through these questions. Your answers gave Dr. Kyle's team a clear starting picture — they'll review everything and reach out to set up a conversation about the right next step for your child.";
     meta.innerHTML = '';
   }
   banner.style.display = 'flex';
@@ -2125,28 +1960,9 @@ function populateEligibilityBanner(r) {
 
 function populateThanksMessage(r) {
   const el = document.getElementById('thanks-message');
-  if (r.home_intensive_candidate) {
-    el.textContent = "Your intake has been saved and submitted for clinical review. Based on your answers, your child appears to be a candidate for our 8-week home intensive (1.5-3 hours/day, Mon-Fri, weekends off). Dr. Kyle's team will reach out about enrollment.";
-  } else if (r.safetyFired.length > 0) {
-    el.textContent = "Your intake has been saved and submitted for clinical review. Your answers indicate some clinical priorities to address before any home intensive program — Dr. Kyle's team will reach out promptly to discuss the right next steps.";
-  } else {
-    el.textContent = "Your intake has been saved and submitted for clinical review. Based on your answers, your child needs additional clinical work before a home intensive would be appropriate. Dr. Kyle's team will reach out to schedule a consult and map the right path forward.";
-  }
-}
-
-function renderFlags(elId, list, empty, baseClass) {
-  const el = document.getElementById(elId);
-  el.innerHTML = '';
-  if (!list || list.length === 0) {
-    el.innerHTML = `<span class="${baseClass} empty">${empty}</span>`;
-    return;
-  }
-  list.forEach(f => {
-    const s = document.createElement('span');
-    s.className = baseClass;
-    s.textContent = f;
-    el.appendChild(s);
-  });
+  // Both routes get the same warm acknowledgment; the eligibility banner below
+  // is the only thing that visibly differs by route.
+  el.textContent = "Your intake has been saved and submitted. Dr. Kyle's team will review your answers before reaching out — that way your first conversation is focused specifically on your child.";
 }
 
 // ============================================================
@@ -2195,34 +2011,6 @@ document.getElementById('btn-clear').addEventListener('click', () => {
 });
 
 // ============================================================
-//  Mode UI — parent vs clinician
-// ============================================================
-function applyModeUI() {
-  document.querySelectorAll('.mode-btn').forEach(btn => {
-    const isActive = (btn.dataset.mode === 'clinician') === state.clinicianMode;
-    btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-  });
-  // v1.3.4: use setSubmitButtonPhase so we don't clobber 'Submitted ✓' / 'Try again' state
-  // when the user toggles parent/clinician mode after submitting.
-  setSubmitButtonPhase(submitPhase);
-  // If a result is currently visible, re-render it for the new mode.
-  // v1.3.4: render from cache instead of re-running classify(), because classify()
-  // is now debounced and would refuse to run again after a successful submit.
-  const resultEl = document.getElementById('result');
-  if (resultEl && resultEl.classList.contains('show') && state._lastResult) {
-    render(state._lastResult);
-  }
-}
-
-document.querySelectorAll('.mode-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    state.clinicianMode = btn.dataset.mode === 'clinician';
-    saveToStorage();
-    applyModeUI();
-  });
-});
-
-// ============================================================
 //  Initialise
 // ============================================================
 loadFromStorage();
@@ -2230,7 +2018,7 @@ buildSections();
 refreshAllRows();
 refreshToggles();
 refreshProgress();
-applyModeUI();
+setSubmitButtonPhase(submitPhase);
 </script>
 </body>
 </html>
