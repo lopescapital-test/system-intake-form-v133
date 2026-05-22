@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NeuroSage Hub — Heterogeneity Intake · v1.3.5</title>
+<title>NeuroSage Hub — Heterogeneity Intake · v1.3.6</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -837,7 +837,7 @@ footer.foot code { font-family: ui-monospace, monospace; color: var(--sage); }
     <div class="eyebrow">Heterogeneity Intake · 121 questions</div>
     <h1>Tell us about <em>your child</em>.</h1>
     <p class="lede">
-      This intake gathers a complete picture of your child's nervous system, behaviour, and history — what's going well, what's been hard, what you've noticed change over time. Your answers help Dr. Kyle's team understand your child before you ever speak to them, so that first conversation is focused on your child specifically rather than starting from scratch.
+      Thanks for booking a call with us. This intake gives Dr. Kyle's team a complete picture of your child — nervous system, behaviour, history, what's going well, what's been hard, what you've noticed change over time. Filling it out before your call means we walk in already knowing your child, so the conversation can focus on the specifics rather than starting from scratch.
       <br><br>
       <strong>Score each item from 0 to 4</strong>, based on how often or how severely it applies. The form takes about 20-30 minutes and saves automatically — you can close it and return later.
     </p>
@@ -991,7 +991,7 @@ footer.foot code { font-family: ui-monospace, monospace; color: var(--sage); }
     <div class="result-thanks">
       <div class="thanks-check">✓</div>
       <div class="thanks-title">Thank you</div>
-      <div class="thanks-message" id="thanks-message">Your intake has been saved and submitted for clinical review. Dr. Kyle's team will reach out about next steps.</div>
+      <div class="thanks-message" id="thanks-message">Your intake has been saved. Dr. Kyle's team will review your answers before your call so they can come in already knowing your child.</div>
       <div class="thanks-note">You can close this page. Your answers are saved on this device if you need to come back and make changes.</div>
     </div>
 
@@ -1007,7 +1007,7 @@ footer.foot code { font-family: ui-monospace, monospace; color: var(--sage); }
   </section>
 
   <footer class="foot">
-    <p>NeuroSage Hub · Heterogeneity Intake · Form <code>v1.3.5</code> · Engine <code>v1.3.2</code> · 121 questions across 12 phenotypes</p>
+    <p>NeuroSage Hub · Heterogeneity Intake · Form <code>v1.3.6</code> · Engine <code>v1.3.2</code> · 121 questions across 12 phenotypes</p>
   </footer>
 </div>
 
@@ -1211,7 +1211,7 @@ const STORAGE_KEY = 'neurosage_intake_v1_0';
 
 // v1.3.3: GHL webhook config — production endpoint for NeuroHome sub-account
 const GHL_WEBHOOK_URL = 'https://services.leadconnectorhq.com/hooks/OzXiG0YQaeEKh2w5XeyU/webhook-trigger/4c769438-be07-4700-835b-48961cc6885a';
-const INTAKE_FORM_VERSION = 'v1.3.5';
+const INTAKE_FORM_VERSION = 'v1.3.6';
 // Engine version reflects routing-logic schema, not form-shell version.
 // v1.3.2 = acute_illness_fever + severe_sleep_collapse safety gates wired, recent_illness_watch modifier flag.
 const INTAKE_ENGINE_VERSION = 'v1.3.2';
@@ -1945,14 +1945,14 @@ function populateEligibilityBanner(r) {
   if (r.home_intensive_candidate) {
     banner.className = 'eligibility-banner eligible';
     icon.textContent = '✓';
-    title.textContent = 'Strong fit for our 8-week home intensive';
-    sub.textContent = "Based on your answers, our home intensive program looks like a strong match for your child. Dr. Kyle's team will review your intake and reach out about next steps.";
+    title.textContent = 'Your child looks like a strong fit for our 8-week home intensive';
+    sub.textContent = "Based on your answers, our home intensive program looks like a good match. Dr. Kyle's team will dig into the details on your call — bring any questions you'd like to talk through.";
     meta.innerHTML = '';
   } else {
     banner.className = 'eligibility-banner consult';
     icon.textContent = '→';
-    title.textContent = "Let's talk through your child's picture together";
-    sub.textContent = "Thanks for taking the time to walk through these questions. Your answers gave Dr. Kyle's team a clear starting picture — they'll review everything and reach out to set up a conversation about the right next step for your child.";
+    title.textContent = "There's a lot to dig into on your call";
+    sub.textContent = "Your answers gave Dr. Kyle's team a clear starting picture of your child. They'll have specific things to talk through with you — bring any questions you'd like to ask, and they'll walk you through what they're seeing.";
     meta.innerHTML = '';
   }
   banner.style.display = 'flex';
@@ -1960,9 +1960,9 @@ function populateEligibilityBanner(r) {
 
 function populateThanksMessage(r) {
   const el = document.getElementById('thanks-message');
-  // Both routes get the same warm acknowledgment; the eligibility banner below
-  // is the only thing that visibly differs by route.
-  el.textContent = "Your intake has been saved and submitted. Dr. Kyle's team will review your answers before reaching out — that way your first conversation is focused specifically on your child.";
+  // Both routes get the same call-aware acknowledgment; the eligibility banner
+  // below is the only thing that visibly differs by route.
+  el.textContent = "Your intake has been saved. Dr. Kyle's team will review your answers before your call so they can come in already knowing your child.";
 }
 
 // ============================================================
