@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NeuroSage Hub — Heterogeneity Intake · v1.3.3</title>
+<title>NeuroSage Hub — Heterogeneity Intake · v1.3.4</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -1305,8 +1305,18 @@ const STORAGE_KEY = 'neurosage_intake_v1_0';
 
 // v1.3.3: GHL webhook config — production endpoint for NeuroHome sub-account
 const GHL_WEBHOOK_URL = 'https://services.leadconnectorhq.com/hooks/OzXiG0YQaeEKh2w5XeyU/webhook-trigger/4c769438-be07-4700-835b-48961cc6885a';
-const INTAKE_FORM_VERSION = 'v1.3.3';
+const INTAKE_FORM_VERSION = 'v1.3.4';
 const INTAKE_ENGINE_VERSION = 'v1.3.1';
+
+// v1.3.4: submit state machine. Prevents double-submission while a POST is in flight.
+// Transitions: 'idle' -> 'submitting' -> ('submitted_success' [terminal] | 'submitted_failed' -> 'idle' via retry)
+// btn-clear handler also resets this back to 'idle'.
+let submitPhase = 'idle';
+// v1.3.4: monotonic counter. Each submit attempt captures the current value; callbacks ignore
+// themselves if a newer attempt has started. Prevents stale late-arriving original responses
+// from overwriting the state of an in-flight retry.
+let submitGeneration = 0;
+const SUBMISSION_TIMEOUT_MS = 30000;
 
 const state = {
   scores: {},        // qid -> 0..4
@@ -1775,44 +1785,98 @@ function classify() {
   }
   if (emailInput) emailInput.style.borderColor = '';
 
-  // v1.3.1: reset transient borderline flag
-  state._hyperimmuneBorderline = false;
+  // v1.3.4: debounce guard. Must happen AFTER email validation — bad email should not lock the button.
+  // Guard against double-clicks, duplicate enrollments, and post-success resubmissions.
+  if (submitPhase === 'submitting') {
+    // Already in flight. Belt-and-suspenders — button is also disabled, but the click might have
+    // landed in the gap between event dispatch and the disabled attribute taking effect.
+    return;
+  }
+  if (submitPhase === 'submitted_success') {
+    // Terminal state. User has to Clear & restart to submit a new intake.
+    return;
+  }
+  // submitPhase is 'idle' or 'submitted_failed' — acquire the lock and proceed.
+  submitPhase = 'submitting';
+  const myGen = ++submitGeneration; // capture for callback closures below
+  setSubmitButtonPhase('submitting');
+  showInlineSubmitNote(null); // clear any prior failure message
 
-  const pcts = getPhenoPercents();
-  const critical = computeCriticalOverrides();
-  const historyFlags = evaluateHistoryFlags();
-  const overrides = scanCriticalOverrides(critical);
-  const safetyFired = evaluateSafetyGates(historyFlags, critical);
-  const { arch, notes } = routeArchetype(historyFlags, safetyFired, pcts, critical);
-  const subtype = getSubtype(arch, historyFlags, pcts);
-  // v1.3.1 drift patch: post-routing safety gates fire after archetype is known
-  const postRoutingGates = evaluatePostRoutingGates(arch, subtype);
-  postRoutingGates.forEach(g => { if (!safetyFired.includes(g)) safetyFired.push(g); });
-  const flags = assembleFlags(arch, overrides.flags, pcts, historyFlags);
-  const nbss = computeNBSS(historyFlags, pcts);
+  // v1.3.4: wrap routing-engine work in try/catch so a synchronous throw can't strand the button.
+  let result;
+  try {
+    // v1.3.1: reset transient borderline flag
+    state._hyperimmuneBorderline = false;
 
-  let autoRoute = safetyFired.length === 0 && arch !== 'no_template_clinician_consult' && arch !== 'severe_dysregulation_10';
-  if (historyFlags.includes('h_recent_regression')) autoRoute = false;
-  if (historyFlags.includes('h_congenital_structural') || historyFlags.includes('h_acquired_neurological_insult')) autoRoute = false;
+    const pcts = getPhenoPercents();
+    const critical = computeCriticalOverrides();
+    const historyFlags = evaluateHistoryFlags();
+    const overrides = scanCriticalOverrides(critical);
+    const safetyFired = evaluateSafetyGates(historyFlags, critical);
+    const { arch, notes } = routeArchetype(historyFlags, safetyFired, pcts, critical);
+    const subtype = getSubtype(arch, historyFlags, pcts);
+    // v1.3.1 drift patch: post-routing safety gates fire after archetype is known
+    const postRoutingGates = evaluatePostRoutingGates(arch, subtype);
+    postRoutingGates.forEach(g => { if (!safetyFired.includes(g)) safetyFired.push(g); });
+    const flags = assembleFlags(arch, overrides.flags, pcts, historyFlags);
+    const nbss = computeNBSS(historyFlags, pcts);
 
-  // v1.3.1: TWO-TRACK ROUTING — home_intensive_candidate decision.
-  // Home intensive is for Foundational + Sensory-Motor only. Everyone else routes to consult-track.
-  // Blocking safety gates always force consult regardless of archetype.
-  const intensiveArchetypes = ['foundational_2', 'sensory_motor_3'];
-  const blockingGates = ['active_seizure', 'feeding_crisis', 'recent_regression', 'active_flare', 'safety_risk', 'severe_dysreg_routing', 'md_only_module', 'unclear_classification', 'acute_illness_fever', 'severe_sleep_collapse'];
-  const hasBlockingGate = safetyFired.some(g => blockingGates.includes(g));
-  const home_intensive_candidate = intensiveArchetypes.includes(arch) && !hasBlockingGate;
-  const consult_track = !home_intensive_candidate;
+    let autoRoute = safetyFired.length === 0 && arch !== 'no_template_clinician_consult' && arch !== 'severe_dysregulation_10';
+    if (historyFlags.includes('h_recent_regression')) autoRoute = false;
+    if (historyFlags.includes('h_congenital_structural') || historyFlags.includes('h_acquired_neurological_insult')) autoRoute = false;
 
-  const result = { arch, subtype, flags, historyFlags, safetyFired, overrides, autoRoute, home_intensive_candidate, consult_track, nbss, notes, pcts };
-  render(result);
+    // v1.3.1: TWO-TRACK ROUTING — home_intensive_candidate decision.
+    // Home intensive is for Foundational + Sensory-Motor only. Everyone else routes to consult-track.
+    // Blocking safety gates always force consult regardless of archetype.
+    const intensiveArchetypes = ['foundational_2', 'sensory_motor_3'];
+    const blockingGates = ['active_seizure', 'feeding_crisis', 'recent_regression', 'active_flare', 'safety_risk', 'severe_dysreg_routing', 'md_only_module', 'unclear_classification', 'acute_illness_fever', 'severe_sleep_collapse'];
+    const hasBlockingGate = safetyFired.some(g => blockingGates.includes(g));
+    const home_intensive_candidate = intensiveArchetypes.includes(arch) && !hasBlockingGate;
+    const consult_track = !home_intensive_candidate;
 
-  // v1.3.3: submit to GHL webhook. Fire-and-forget; we don't block the UI on it.
-  submitIntake(result).catch(err => {
-    console.error('Intake submission failed:', err);
-    // The result panel already shows; we don't surface this to the parent.
-    // Backend retries / manual recovery happen via the raw_intake_json blob.
-  });
+    result = { arch, subtype, flags, historyFlags, safetyFired, overrides, autoRoute, home_intensive_candidate, consult_track, nbss, notes, pcts };
+    state._lastResult = result; // v1.3.4: cache for applyModeUI re-render on mode toggle
+    render(result);
+  } catch (e) {
+    // Routing engine threw — release the lock so user can retry. Don't fire the webhook with bad data.
+    console.error('Routing engine error in classify():', e);
+    submitPhase = 'submitted_failed';
+    setSubmitButtonPhase('submitted_failed');
+    showInlineSubmitNote('Something went wrong computing your results. Please try again, or reach out to Dr. Kyle\'s team if this keeps happening.');
+    return;
+  }
+
+  // v1.3.4: submit with timeout race. Three outcomes:
+  //   - success: webhook returned 2xx within 30s. Terminal lock — user can't resubmit same intake.
+  //   - failure: webhook errored OR timed out. Re-enable button + show inline note + log to console.
+  //   - timeout: 30s passed with no response. Treated as failure. The POST may still arrive later
+  //     server-side, which is fine — GHL re-enrollment cooldown (see deferred items) is the
+  //     belt-and-suspenders defense against that case creating a duplicate enrollment.
+  const submitPromise = submitIntake(result);
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('SUBMISSION_TIMEOUT')), SUBMISSION_TIMEOUT_MS)
+  );
+
+  Promise.race([submitPromise, timeoutPromise])
+    .then(() => {
+      // v1.3.4: ignore stale wins — if a newer attempt started, this response is from a prior one.
+      if (myGen !== submitGeneration) return;
+      submitPhase = 'submitted_success';
+      setSubmitButtonPhase('submitted_success');
+    })
+    .catch(err => {
+      console.error('Intake submission failed:', err);
+      // v1.3.4: same stale-callback guard. A timeout firing for a prior attempt shouldn't
+      // flip a newer attempt's state to failed.
+      if (myGen !== submitGeneration) return;
+      submitPhase = 'submitted_failed';
+      setSubmitButtonPhase('submitted_failed');
+      const isTimeout = err && err.message === 'SUBMISSION_TIMEOUT';
+      showInlineSubmitNote(isTimeout
+        ? 'The submission is taking longer than expected. Your answers are saved on this device. Please try again — if it keeps happening, reach out to Dr. Kyle\'s team.'
+        : 'We saved your answers locally but the submission to our system didn\'t go through. Please try again — if it keeps happening, reach out to Dr. Kyle\'s team.'
+      );
+    });
 }
 
 // ============================================================
@@ -1901,6 +1965,55 @@ async function submitIntake(r) {
     throw new Error('Webhook responded ' + response.status + ' ' + response.statusText);
   }
   return response;
+}
+
+// ============================================================
+//  v1.3.4: Submit-button state helpers
+// ============================================================
+// Centralized so we can't get into a half-set state (e.g. disabled but with success text).
+// Note parameter name is `phase` (not `state`) to avoid shadowing the global `state` object.
+function setSubmitButtonPhase(phase) {
+  const btn = document.getElementById('btn-classify');
+  if (!btn) return;
+  switch (phase) {
+    case 'idle':
+      btn.disabled = false;
+      btn.textContent = state.clinicianMode ? 'Generate clinical routing' : 'Submit intake';
+      break;
+    case 'submitting':
+      btn.disabled = true;
+      btn.textContent = 'Submitting…';
+      break;
+    case 'submitted_success':
+      btn.disabled = true;
+      btn.textContent = 'Submitted ✓';
+      break;
+    case 'submitted_failed':
+      btn.disabled = false;
+      btn.textContent = 'Try again';
+      break;
+  }
+}
+
+// Inserts/removes a small inline note below the submit button. Used on submission failure
+// to honestly tell the parent that the network submission didn't go through, even though
+// the result panel is already showing. Hidden by default; appears only on failure.
+function showInlineSubmitNote(text) {
+  let note = document.getElementById('submit-inline-note');
+  if (!note) {
+    const actions = document.querySelector('.actions');
+    if (!actions) return;
+    note = document.createElement('div');
+    note.id = 'submit-inline-note';
+    note.style.cssText = 'flex-basis:100%;margin-top:8px;padding:10px 14px;background:var(--rust-soft);border-left:3px solid var(--rust);border-radius:4px;font-size:13px;color:var(--ink-soft);line-height:1.5;';
+    actions.appendChild(note);
+  }
+  if (text) {
+    note.textContent = text;
+    note.style.display = 'block';
+  } else {
+    note.style.display = 'none';
+  }
 }
 
 // ============================================================
@@ -2071,6 +2184,10 @@ document.getElementById('btn-clear').addEventListener('click', () => {
   state.email = '';
   // Note: contactId preserved — it came from URL, not user input
   saveToStorage();
+  // v1.3.4: reset submit phase so user can submit again after clearing.
+  submitPhase = 'idle';
+  setSubmitButtonPhase('idle');
+  showInlineSubmitNote(null);
   refreshAllRows();
   refreshToggles();
   refreshProgress();
@@ -2085,12 +2202,15 @@ function applyModeUI() {
     const isActive = (btn.dataset.mode === 'clinician') === state.clinicianMode;
     btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
   });
-  const btn = document.getElementById('btn-classify');
-  if (btn) btn.textContent = state.clinicianMode ? 'Generate clinical routing' : 'Submit intake';
-  // If a result is currently visible, re-render it for the new mode
-  const result = document.getElementById('result');
-  if (result && result.classList.contains('show')) {
-    classify();
+  // v1.3.4: use setSubmitButtonPhase so we don't clobber 'Submitted ✓' / 'Try again' state
+  // when the user toggles parent/clinician mode after submitting.
+  setSubmitButtonPhase(submitPhase);
+  // If a result is currently visible, re-render it for the new mode.
+  // v1.3.4: render from cache instead of re-running classify(), because classify()
+  // is now debounced and would refuse to run again after a successful submit.
+  const resultEl = document.getElementById('result');
+  if (resultEl && resultEl.classList.contains('show') && state._lastResult) {
+    render(state._lastResult);
   }
 }
 
