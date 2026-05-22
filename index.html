@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NeuroSage Hub — Heterogeneity Intake · v1.3.6</title>
+<title>NeuroSage Hub — Heterogeneity Intake · v1.3.7</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -493,7 +493,7 @@ h1 em {
 /* ============ Section nav (desktop) ============ */
 .section-nav {
   position: fixed;
-  left: max(24px, calc(50% - 600px));
+  left: max(24px, calc(50% - 660px));
   top: 100px;
   width: 180px;
   font-size: 12px;
@@ -848,6 +848,10 @@ footer.foot code { font-family: ui-monospace, monospace; color: var(--sage); }
         <div class="field-help" style="font-size:12px;color:var(--ink-mute);margin-top:4px;">Required — used to identify this intake and send Dr. Kyle's team next-step instructions.</div>
       </div>
       <div class="field-block">
+        <label class="field-label" for="parent-phone">Your phone number <span style="color:var(--rust);">*</span></label>
+        <input class="field-input" id="parent-phone" type="tel" placeholder="(555) 123-4567" required autocomplete="tel">
+      </div>
+      <div class="field-block">
         <label class="field-label" for="child-name">Child's name (optional)</label>
         <input class="field-input" id="child-name" type="text" placeholder="e.g. Lily">
       </div>
@@ -1007,7 +1011,7 @@ footer.foot code { font-family: ui-monospace, monospace; color: var(--sage); }
   </section>
 
   <footer class="foot">
-    <p>NeuroSage Hub · Heterogeneity Intake · Form <code>v1.3.6</code> · Engine <code>v1.3.2</code> · 121 questions across 12 phenotypes</p>
+    <p>NeuroSage Hub · Heterogeneity Intake · Form <code>v1.3.7</code> · Engine <code>v1.3.2</code> · 121 questions across 12 phenotypes</p>
   </footer>
 </div>
 
@@ -1211,7 +1215,7 @@ const STORAGE_KEY = 'neurosage_intake_v1_0';
 
 // v1.3.3: GHL webhook config — production endpoint for NeuroHome sub-account
 const GHL_WEBHOOK_URL = 'https://services.leadconnectorhq.com/hooks/OzXiG0YQaeEKh2w5XeyU/webhook-trigger/4c769438-be07-4700-835b-48961cc6885a';
-const INTAKE_FORM_VERSION = 'v1.3.6';
+const INTAKE_FORM_VERSION = 'v1.3.7';
 // Engine version reflects routing-logic schema, not form-shell version.
 // v1.3.2 = acute_illness_fever + severe_sleep_collapse safety gates wired, recent_illness_watch modifier flag.
 const INTAKE_ENGINE_VERSION = 'v1.3.2';
@@ -1233,6 +1237,7 @@ const state = {
   childName: '',
   age: 5,
   email: '',         // v1.3.3: parent email, required for GHL submission
+  phone: '',         // v1.3.7: parent phone, required for GHL submission (binding deferred)
   contactId: '',     // v1.3.3: GHL contact ID, optional (from magic-link URL param)
 };
 
@@ -1247,6 +1252,7 @@ function loadFromStorage() {
       state.childName = parsed.childName || '';
       state.age = parsed.age || 5;
       state.email = parsed.email || '';
+      state.phone = parsed.phone || '';
       state.contactId = parsed.contactId || '';
     }
   } catch (e) { /* corrupt or absent — ignore */ }
@@ -1256,6 +1262,9 @@ function loadFromStorage() {
     // v1.3.3: magic-link prefill from call-confirmation email
     const urlEmail = params.get('email');
     if (urlEmail) state.email = urlEmail;
+    // v1.3.7: magic-link phone prefill
+    const urlPhone = params.get('phone');
+    if (urlPhone) state.phone = urlPhone;
     const urlCid = params.get('cid');
     if (urlCid) state.contactId = urlCid;
   }
@@ -1409,6 +1418,9 @@ function refreshToggles() {
   // v1.3.3: prefill email from localStorage or URL param
   const emailEl = document.getElementById('parent-email');
   if (emailEl) emailEl.value = state.email || '';
+  // v1.3.7: prefill phone from localStorage or URL param
+  const phoneEl = document.getElementById('parent-phone');
+  if (phoneEl) phoneEl.value = state.phone || '';
 }
 
 // ============================================================
@@ -1688,7 +1700,25 @@ function classify() {
   }
   if (emailInput) emailInput.style.borderColor = '';
 
-  // v1.3.4: debounce guard. Must happen AFTER email validation — bad email should not lock the button.
+  // v1.3.7: validate parent phone. Rule: at least 10 digits when stripped of non-digit characters.
+  // Accepts common formats like (555) 123-4567, 555-123-4567, +44 20 7946 0958, etc.
+  // Rejects obvious typos like "123" or "asdf" but doesn't try to enforce regional formats.
+  const phoneInput = document.getElementById('parent-phone');
+  const phone = (state.phone || '').trim();
+  const phoneDigits = phone.replace(/\D/g, '');
+  const phoneValid = phoneDigits.length >= 10;
+  if (!phoneValid) {
+    if (phoneInput) {
+      phoneInput.style.borderColor = 'var(--rust)';
+      phoneInput.focus();
+      phoneInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    alert('Please enter a valid phone number before submitting. Dr. Kyle\'s team uses it as a backup if email doesn\'t reach you.');
+    return;
+  }
+  if (phoneInput) phoneInput.style.borderColor = '';
+
+  // v1.3.4: debounce guard. Must happen AFTER validation — bad input should not lock the button.
   // Guard against double-clicks, duplicate enrollments, and post-success resubmissions.
   if (submitPhase === 'submitting') {
     // Already in flight. Belt-and-suspenders — button is also disabled, but the click might have
@@ -1796,6 +1826,7 @@ async function submitIntake(r) {
   const payload = {
     // Identity (#1-#3)
     email: state.email,
+    phone: state.phone,
     child_first_name: state.childName || '',
     primary_archetype: r.arch || '',
     // Subtype (#4)
@@ -1841,6 +1872,7 @@ async function submitIntake(r) {
       childName: state.childName,
       age: state.age,
       email: state.email,
+      phone: state.phone,
       contactId: state.contactId,
       computed: {
         pcts: pcts,
@@ -1985,6 +2017,9 @@ document.addEventListener('change', (e) => {
   } else if (t.id === 'parent-email') {
     state.email = t.value.trim();
     saveToStorage();
+  } else if (t.id === 'parent-phone') {
+    state.phone = t.value.trim();
+    saveToStorage();
   }
 });
 
@@ -1998,6 +2033,7 @@ document.getElementById('btn-clear').addEventListener('click', () => {
   state.childName = '';
   state.age = 5;
   state.email = '';
+  state.phone = '';
   // Note: contactId preserved — it came from URL, not user input
   saveToStorage();
   // v1.3.4: reset submit phase so user can submit again after clearing.
