@@ -849,7 +849,7 @@ footer.foot code { font-family: ui-monospace, monospace; color: var(--sage); }
       </div>
       <div class="field-block">
         <label class="field-label" for="parent-phone">Your phone number <span style="color:var(--rust);">*</span></label>
-        <input class="field-input" id="parent-phone" type="tel" placeholder="(555) 123-4567" required autocomplete="tel">
+        <input class="field-input" id="parent-phone" type="tel" placeholder="(555) 123-4567" required autocomplete="tel" maxlength="14">
       </div>
       <div class="field-block">
         <label class="field-label" for="child-name">Child's name (optional)</label>
@@ -1418,9 +1418,15 @@ function refreshToggles() {
   // v1.3.3: prefill email from localStorage or URL param
   const emailEl = document.getElementById('parent-email');
   if (emailEl) emailEl.value = state.email || '';
-  // v1.3.7: prefill phone from localStorage or URL param
+  // v1.3.7: prefill phone from localStorage or URL param. Normalize to formatted shape
+  // so the input always displays consistently regardless of how the value was stored.
   const phoneEl = document.getElementById('parent-phone');
-  if (phoneEl) phoneEl.value = state.phone || '';
+  if (phoneEl) {
+    const rawDigits = (state.phone || '').replace(/\D/g, '').slice(0, 10);
+    const formatted = rawDigits.length > 0 ? formatPhoneNANP(rawDigits) : '';
+    phoneEl.value = formatted;
+    state.phone = formatted; // keep state in sync with displayed value
+  }
 }
 
 // ============================================================
@@ -1700,20 +1706,20 @@ function classify() {
   }
   if (emailInput) emailInput.style.borderColor = '';
 
-  // v1.3.7: validate parent phone. Rule: at least 10 digits when stripped of non-digit characters.
-  // Accepts common formats like (555) 123-4567, 555-123-4567, +44 20 7946 0958, etc.
-  // Rejects obvious typos like "123" or "asdf" but doesn't try to enforce regional formats.
+  // v1.3.7: validate parent phone. Rule: exactly 10 digits (US/Canada NANP format).
+  // The phone input is auto-formatted to (XXX) XXX-XXXX as the parent types; this validation
+  // is the backstop in case formatting was bypassed somehow (paste, autofill, etc.).
   const phoneInput = document.getElementById('parent-phone');
   const phone = (state.phone || '').trim();
   const phoneDigits = phone.replace(/\D/g, '');
-  const phoneValid = phoneDigits.length >= 10;
+  const phoneValid = phoneDigits.length === 10;
   if (!phoneValid) {
     if (phoneInput) {
       phoneInput.style.borderColor = 'var(--rust)';
       phoneInput.focus();
       phoneInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
-    alert('Please enter a valid phone number before submitting. Dr. Kyle\'s team uses it as a backup if email doesn\'t reach you.');
+    alert('Please enter a 10-digit US phone number, e.g. (555) 123-4567. Dr. Kyle\'s team uses it as a backup if email doesn\'t reach you.');
     return;
   }
   if (phoneInput) phoneInput.style.borderColor = '';
@@ -2017,11 +2023,49 @@ document.addEventListener('change', (e) => {
   } else if (t.id === 'parent-email') {
     state.email = t.value.trim();
     saveToStorage();
-  } else if (t.id === 'parent-phone') {
-    state.phone = t.value.trim();
-    saveToStorage();
   }
+  // v1.3.7: parent-phone handled by dedicated input-listener below (handles formatting too)
 });
+
+// v1.3.7: as-you-type phone formatter — US/Canada (XXX) XXX-XXXX format.
+// Strips non-digit characters, caps at 10 digits, rebuilds the canonical shape.
+// Preserves cursor position by counting digits before the cursor in the raw input
+// and placing the cursor after that same digit count in the formatted output.
+function formatPhoneNANP(digits) {
+  if (digits.length === 0) return '';
+  if (digits.length <= 3) return '(' + digits;
+  if (digits.length <= 6) return '(' + digits.slice(0, 3) + ') ' + digits.slice(3);
+  return '(' + digits.slice(0, 3) + ') ' + digits.slice(3, 6) + '-' + digits.slice(6, 10);
+}
+
+const phoneInputEl = document.getElementById('parent-phone');
+if (phoneInputEl) {
+  phoneInputEl.addEventListener('input', (e) => {
+    const input = e.target;
+    const oldValue = input.value;
+    const oldCursor = input.selectionStart || 0;
+    // Count how many digits exist before the cursor in the raw input — this is the
+    // anchor we'll use to place the cursor after reformatting.
+    const digitsBeforeCursor = oldValue.slice(0, oldCursor).replace(/\D/g, '').length;
+    // Strip everything but digits, cap at 10
+    const allDigits = oldValue.replace(/\D/g, '').slice(0, 10);
+    const formatted = formatPhoneNANP(allDigits);
+    input.value = formatted;
+    // Walk the formatted string until we've passed `digitsBeforeCursor` digits,
+    // then place the cursor right after that position.
+    let newCursor = 0;
+    let digitsSeen = 0;
+    for (let i = 0; i < formatted.length; i++) {
+      if (digitsSeen >= digitsBeforeCursor) break;
+      if (/\d/.test(formatted[i])) digitsSeen++;
+      newCursor = i + 1;
+    }
+    input.setSelectionRange(newCursor, newCursor);
+    // Mirror the formatted value into state so it persists and submits correctly
+    state.phone = formatted;
+    saveToStorage();
+  });
+}
 
 document.getElementById('btn-classify').addEventListener('click', classify);
 document.getElementById('btn-scroll-top').addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
