@@ -3,416 +3,357 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NeuroSage Hub — Heterogeneity Intake · v1.3.7</title>
+<title>NeuroSage Hub — Heterogeneity Intake · v1.3.8</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+/* =====================================================
+   v1.3.8 — visual rebuild
+   Content + engine: unchanged from v1.3.7 (121 questions, engine v1.3.2)
+   UX: multi-screen flow (Welcome → Intake → Processing → Thanks)
+   Visual language: lifted from system demo (warm cream / sage / terra)
+   ===================================================== */
 :root {
-  --bg: #faf7f2;
-  --bg-soft: #f3ede3;
-  --panel: #ffffff;
-  --ink: #1a2e2a;
-  --ink-soft: #3a4f4a;
-  --ink-mute: #8a9591;
-  --line: #e6dfd3;
-  --line-soft: #efe9dd;
-  --sage: #3d5a4c;
-  --sage-deep: #2b3f36;
-  --sage-soft: #e3ebe5;
-  --terra: #c97b5c;
-  --terra-soft: #f4e3da;
-  --gold: #b08d3f;
-  --amber: #d4a857;
-  --rust: #a04e3a;
-  --rust-soft: #f0d9d1;
-  --serif: 'Fraunces', 'Iowan Old Style', Georgia, serif;
-  --sans: 'Manrope', -apple-system, system-ui, sans-serif;
+  --bg: #FAF7F2;
+  --surface: #FFFFFF;
+  --surface-soft: #F4F0E8;
+  --ink: #2A2823;
+  --ink-2: #5C5650;
+  --ink-3: #908A82;
+  --ink-4: #BFB8AE;
+  --border: #E8E2D8;
+  --border-soft: #F0EBE2;
+  --accent: #4A6650;
+  --accent-deep: #38503F;
+  --accent-soft: #E6EDE5;
+  --accent-line: #BDC9BC;
+  --warm: #B86F4B;
+  --warm-soft: #F3E6DD;
+  --warn: #A66A2A;
+  --warn-soft: #F5E9D7;
+  --danger: #B65430;
+  --danger-soft: #F2E4DA;
+  --shadow-soft: 0 1px 2px rgba(42, 40, 35, 0.04), 0 8px 24px rgba(42, 40, 35, 0.06);
+  --shadow-card: 0 1px 2px rgba(42, 40, 35, 0.04), 0 4px 16px rgba(42, 40, 35, 0.05);
+  --shadow-lift: 0 2px 4px rgba(42, 40, 35, 0.06), 0 16px 48px rgba(42, 40, 35, 0.10);
 }
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
-body {
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+
+html, body {
   background: var(--bg);
   color: var(--ink);
-  font-family: var(--sans);
+  font-family: 'Inter Tight', system-ui, sans-serif;
   font-size: 15px;
-  line-height: 1.55;
-  -webkit-font-smoothing: antialiased;
-  font-feature-settings: "ss01", "cv11";
+  line-height: 1.5;
+  min-height: 100vh;
+}
+body {
+  background:
+    radial-gradient(at 20% 0%, rgba(74, 102, 80, 0.04) 0%, transparent 50%),
+    radial-gradient(at 80% 100%, rgba(184, 111, 75, 0.03) 0%, transparent 50%),
+    var(--bg);
 }
 
-/* ============ Sticky progress bar ============ */
-.progress-bar {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  background: rgba(250, 247, 242, 0.92);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--line);
-}
-.progress-inner {
-  max-width: 880px;
-  margin: 0 auto;
-  padding: 14px 28px;
-  display: flex;
+em { font-style: italic; color: var(--accent); }
+
+/* ========== Typography ========== */
+.display-xl { font-family: 'Fraunces', serif; font-weight: 400; font-size: 42px; line-height: 1.1; letter-spacing: -0.025em; color: var(--ink); }
+.display-l  { font-family: 'Fraunces', serif; font-weight: 400; font-size: 32px; line-height: 1.15; letter-spacing: -0.02em; }
+.display-m  { font-family: 'Fraunces', serif; font-weight: 400; font-size: 24px; line-height: 1.2; letter-spacing: -0.015em; }
+.tag { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+
+/* ========== Screen system ========== */
+.screen { display: none; min-height: 100vh; }
+.screen.active { display: block; animation: fadein 0.35s ease; }
+@keyframes fadein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ========== Buttons ========== */
+.button-primary {
+  display: inline-flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 20px;
-}
-.progress-brand {
-  font-family: var(--serif);
+  gap: 10px;
+  padding: 14px 24px;
+  background: var(--ink);
+  color: var(--bg);
+  border: none;
+  border-radius: 100px;
+  font-family: 'Inter Tight', sans-serif;
+  font-size: 14px;
   font-weight: 600;
-  font-size: 16px;
-  letter-spacing: -0.01em;
-  color: var(--sage-deep);
-  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.15s, background 0.15s;
 }
-.progress-brand em {
-  font-style: italic;
-  color: var(--terra);
-  font-weight: 500;
-}
-.progress-track {
-  flex: 1;
-  height: 6px;
-  background: var(--line-soft);
-  border-radius: 999px;
-  overflow: hidden;
-  position: relative;
-}
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--sage), var(--sage-deep));
-  width: 0%;
-  transition: width 0.3s ease;
-}
-.progress-count {
-  font-family: var(--sans);
-  font-variant-numeric: tabular-nums;
+.button-primary:hover { transform: translateY(-1px); background: var(--accent-deep); }
+.button-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.button-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  background: transparent;
+  color: var(--ink-2);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  font-family: 'Inter Tight', sans-serif;
   font-size: 13px;
-  color: var(--ink-soft);
-  white-space: nowrap;
   font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
 }
-.progress-count strong { color: var(--sage-deep); font-weight: 600; }
+.button-secondary:hover { border-color: var(--accent); color: var(--accent); }
 
-/* ============ Layout ============ */
-.shell {
-  max-width: 880px;
-  margin: 0 auto;
-  padding: 48px 28px 120px;
-}
-
-/* ============ Header / Intro ============ */
-.intro {
-  padding-bottom: 40px;
-  border-bottom: 1px solid var(--line);
-  margin-bottom: 48px;
-}
-.eyebrow {
-  font-family: var(--sans);
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  color: var(--terra);
-  margin-bottom: 14px;
-}
-h1 {
-  font-family: var(--serif);
-  font-weight: 500;
-  font-size: 42px;
-  line-height: 1.08;
-  letter-spacing: -0.02em;
-  color: var(--ink);
-  margin-bottom: 18px;
-}
-h1 em {
-  font-style: italic;
-  color: var(--sage);
-  font-weight: 400;
-}
-.lede {
-  font-size: 17px;
-  line-height: 1.6;
-  color: var(--ink-soft);
+/* ========== WELCOME ========== */
+.welcome-hero {
+  padding: 80px 24px 40px;
+  text-align: left;
   max-width: 640px;
-  margin-bottom: 28px;
+  margin: 0 auto;
 }
-.lede strong { color: var(--ink); font-weight: 600; }
+.welcome-hero .tag { display: block; margin-bottom: 24px; }
+.welcome-hero p.lede {
+  color: var(--ink-2);
+  font-size: 16px;
+  line-height: 1.6;
+  margin: 24px 0 12px;
+  max-width: 580px;
+}
+.welcome-hero p.lede strong { color: var(--ink); font-weight: 600; }
 
-.intro-meta {
+.welcome-fields {
+  margin: 36px 0 28px;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
-  max-width: 520px;
-  margin-top: 28px;
+  max-width: 560px;
 }
-.field-block {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
+@media (max-width: 540px) { .welcome-fields { grid-template-columns: 1fr; } }
+.field-block { display: flex; flex-direction: column; gap: 6px; }
 .field-label {
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  color: var(--ink-mute);
+  color: var(--ink-3);
 }
-.field-input {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 10px 14px;
-  font-family: var(--sans);
+.field-label .req { color: var(--warm); margin-left: 2px; }
+.field-input, select.field-input {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 11px 14px;
+  font-family: 'Inter Tight', sans-serif;
   font-size: 15px;
   color: var(--ink);
   transition: border-color 0.15s, box-shadow 0.15s;
 }
-.field-input:focus {
-  outline: none;
-  border-color: var(--sage);
-  box-shadow: 0 0 0 3px var(--sage-soft);
-}
+.field-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.field-help { font-size: 12px; color: var(--ink-3); margin-top: 2px; line-height: 1.45; }
 
-/* ============ Scale legend ============ */
-.scale-legend {
-  background: var(--sage-soft);
-  border-radius: 8px;
-  padding: 18px 22px;
-  margin-bottom: 40px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 24px;
-  align-items: center;
-}
-.scale-legend-title {
-  font-family: var(--serif);
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--sage-deep);
-  font-style: italic;
-}
-.scale-legend-items {
-  display: flex;
-  gap: 18px;
-  flex-wrap: wrap;
+.welcome-meta {
+  margin-top: 36px;
+  padding: 14px 18px;
+  background: var(--surface-soft);
+  border-left: 3px solid var(--accent-line);
+  border-radius: 6px;
   font-size: 13px;
-  color: var(--ink-soft);
+  color: var(--ink-2);
+  max-width: 580px;
+  line-height: 1.55;
 }
-.scale-legend-items span {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-.scale-legend-items strong {
-  font-variant-numeric: tabular-nums;
-  font-weight: 700;
-  color: var(--sage-deep);
-  display: inline-block;
-  min-width: 12px;
-}
+.welcome-meta strong { color: var(--ink); font-weight: 600; }
 
-/* ============ Section ============ */
-.section {
-  margin-bottom: 56px;
-  scroll-margin-top: 80px;
+/* ========== INTAKE ========== */
+.intake-shell { max-width: 720px; margin: 0 auto; padding: 0 24px; }
+.intake-progress {
+  display: flex;
+  gap: 4px;
+  padding: 20px 24px 0;
+  max-width: 720px;
+  margin: 0 auto;
 }
-.section-head {
+.intake-progress-bar {
+  flex: 1;
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  transition: background 0.3s;
+}
+.intake-progress-bar.complete { background: var(--accent); }
+.intake-progress-bar.active { background: var(--accent); }
+
+.intake-header {
+  padding: 28px 0 8px;
+}
+.intake-header .meta-row {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  padding-bottom: 14px;
+  margin-bottom: 14px;
 }
-.section-scale {
-  display: flex;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  gap: 14px;
-  padding-bottom: 14px;
-  margin-bottom: 22px;
-  border-bottom: 1px solid var(--line);
+.intake-header .tag { color: var(--accent); }
+.intake-header .progress-count {
   font-size: 11px;
-  color: var(--ink-mute);
-  letter-spacing: 0.01em;
-}
-.section-scale-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-}
-.section-scale-num {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--bg-soft);
-  border: 1px solid var(--line);
-  font-family: var(--sans);
-  font-variant-numeric: tabular-nums;
-  font-weight: 600;
-  font-size: 10px;
-  color: var(--ink-soft);
-}
-.section-title-block {
-  display: flex;
-  align-items: baseline;
-  gap: 14px;
-}
-.section-code {
-  font-family: var(--sans);
-  font-variant-numeric: tabular-nums;
-  font-size: 12px;
-  font-weight: 600;
   letter-spacing: 0.08em;
-  color: var(--terra);
-  padding: 3px 8px;
-  background: var(--terra-soft);
-  border-radius: 4px;
-}
-.section-title {
-  font-family: var(--serif);
+  text-transform: uppercase;
+  color: var(--ink-3);
   font-weight: 500;
-  font-size: 26px;
-  letter-spacing: -0.015em;
-  color: var(--ink);
-}
-.section-descriptor {
-  font-size: 13px;
-  color: var(--ink-mute);
-  font-style: italic;
-  margin-top: 4px;
-  margin-left: 0;
-}
-.section-pill {
-  font-family: var(--sans);
   font-variant-numeric: tabular-nums;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--ink-mute);
-  white-space: nowrap;
-  padding-left: 16px;
 }
-.section-pill strong {
-  color: var(--sage-deep);
-  font-weight: 600;
+.intake-header .progress-count strong { color: var(--ink); font-weight: 600; }
+
+.section-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 32px;
+  margin: 24px 0 32px;
+  box-shadow: var(--shadow-card);
+}
+@media (max-width: 600px) {
+  .intake-shell { padding: 0; }
+  .section-card { border-radius: 0; border-left: none; border-right: none; padding: 24px 20px; }
+  .intake-header { padding: 28px 20px 8px; }
+}
+
+.section-card-sub {
+  color: var(--ink-2);
+  font-size: 14px;
+  margin-bottom: 24px;
+  line-height: 1.55;
+  font-style: italic;
+  font-family: 'Fraunces', serif;
+  font-weight: 300;
 }
 
 .subsection-label {
-  font-family: var(--serif);
+  font-family: 'Fraunces', serif;
   font-style: italic;
-  font-size: 14px;
-  color: var(--sage);
-  margin: 28px 0 14px;
+  font-size: 13px;
+  color: var(--accent);
+  margin: 22px 0 10px;
   padding-left: 2px;
-  font-weight: 500;
+  font-weight: 400;
   letter-spacing: 0.01em;
 }
-.subsection-label:first-of-type { margin-top: 4px; }
+.subsection-label:first-of-type { margin-top: 0; }
 
-/* ============ Question row ============ */
-.q-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 20px;
-  align-items: center;
-  padding: 14px 4px;
-  border-bottom: 1px solid var(--line-soft);
-  transition: background 0.12s;
+.question {
+  padding: 16px 0;
+  border-top: 1px solid var(--border-soft);
 }
-.q-row:hover { background: var(--bg-soft); }
-.q-row.answered .q-text { color: var(--ink); }
-.q-text {
+.question:first-of-type { border-top: none; padding-top: 4px; }
+.question-text {
   font-size: 15px;
-  color: var(--ink-soft);
-  font-weight: 400;
+  color: var(--ink);
+  margin-bottom: 12px;
+  line-height: 1.45;
+  font-weight: 500;
 }
-.q-text small {
-  display: block;
-  font-size: 11px;
-  color: var(--ink-mute);
+.question-text small {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 10.5px;
+  color: var(--ink-4);
   font-family: ui-monospace, "SF Mono", monospace;
-  margin-top: 3px;
-  letter-spacing: 0.02em;
+  font-weight: 400;
+  letter-spacing: 0.04em;
 }
+
 .likert {
   display: flex;
-  gap: 6px;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 .likert-btn {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  border: 1.5px solid var(--line);
-  background: var(--panel);
-  color: var(--ink-mute);
-  font-family: var(--sans);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  font-size: 14px;
+  flex: 1;
+  min-width: 72px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 100px;
+  font-family: 'Inter Tight', sans-serif;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-2);
   cursor: pointer;
-  transition: all 0.12s ease;
+  transition: all 0.15s;
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  gap: 2px;
+  line-height: 1.2;
 }
-.likert-btn:hover {
-  border-color: var(--sage);
-  color: var(--sage);
-  transform: scale(1.05);
+.likert-btn .likert-val {
+  font-family: 'Fraunces', serif;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
 }
+.likert-btn:hover { border-color: var(--accent-line); color: var(--ink); }
 .likert-btn.selected {
-  background: var(--sage);
-  border-color: var(--sage);
-  color: white;
-  transform: scale(1.08);
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-deep);
+  font-weight: 600;
 }
-.likert-btn.selected[data-val="4"] {
-  background: var(--rust);
-  border-color: var(--rust);
+.likert-btn.selected .likert-val { color: var(--accent-deep); }
+.likert-btn.selected[data-val="4"] { background: var(--danger-soft); border-color: var(--danger); color: var(--danger); }
+.likert-btn.selected[data-val="4"] .likert-val { color: var(--danger); }
+.likert-btn.selected[data-val="3"] { background: var(--warm-soft); border-color: var(--warm); color: var(--warn); }
+.likert-btn.selected[data-val="3"] .likert-val { color: var(--warn); }
+/* Unsure button — visually separated from the 0–4 scale so parents read it as
+   "I don't know" rather than "another point on the scale". Slightly muted,
+   set off with a left margin gap, dashed border. */
+.likert-btn.likert-unsure {
+  margin-left: 8px;
+  border-style: dashed;
+  border-color: var(--ink-4);
+  color: var(--ink-3);
+  background: transparent;
 }
-.likert-btn.selected[data-val="3"] {
-  background: var(--terra);
-  border-color: var(--terra);
+.likert-btn.likert-unsure .likert-val {
+  color: var(--ink-3);
+  font-style: italic;
+}
+.likert-btn.likert-unsure:hover {
+  border-color: var(--ink-3);
+  color: var(--ink-2);
+}
+.likert-btn.likert-unsure.selected {
+  background: var(--surface-soft);
+  border-color: var(--ink-3);
+  border-style: solid;
+  color: var(--ink-2);
+}
+.likert-btn.likert-unsure.selected .likert-val { color: var(--ink-2); }
+@media (max-width: 540px) {
+  .likert-btn.likert-unsure { margin-left: 0; flex-basis: 100%; }
 }
 
-/* ============ History toggles ============ */
-.history-section {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 36px 40px;
-  margin-bottom: 48px;
-}
+/* History toggles */
 .toggle-group { margin-bottom: 22px; }
+.toggle-group:last-child { margin-bottom: 0; }
 .toggle-group-title {
-  font-family: var(--serif);
+  font-family: 'Fraunces', serif;
   font-style: italic;
   font-size: 14px;
-  font-weight: 500;
-  color: var(--sage);
-  margin-bottom: 10px;
+  font-weight: 400;
+  color: var(--accent);
+  margin-bottom: 12px;
 }
-.toggle-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
+.toggle-row { display: flex; flex-wrap: wrap; gap: 8px; }
 .toggle {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  background: var(--bg);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  padding: 7px 14px 7px 10px;
+  gap: 10px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 100px;
+  padding: 8px 14px 8px 10px;
   font-size: 13px;
-  color: var(--ink-soft);
+  color: var(--ink-2);
   cursor: pointer;
   transition: all 0.15s;
   user-select: none;
@@ -422,433 +363,217 @@ h1 em {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  border: 1.5px solid var(--ink-mute);
+  border: 1.5px solid var(--ink-3);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   transition: all 0.12s;
+  flex-shrink: 0;
 }
-.toggle input:checked + .toggle-dot {
-  background: var(--sage);
-  border-color: var(--sage);
-}
-.toggle input:checked + .toggle-dot::after {
-  content: "";
-  width: 6px;
-  height: 6px;
-  background: white;
-  border-radius: 50%;
-}
-.toggle:hover { border-color: var(--sage); color: var(--sage-deep); }
-.toggle.safety:hover { border-color: var(--rust); color: var(--rust); }
-.toggle.safety input:checked + .toggle-dot { background: var(--rust); border-color: var(--rust); }
+.toggle input:checked + .toggle-dot { background: var(--accent); border-color: var(--accent); }
+.toggle input:checked + .toggle-dot::after { content: ""; width: 6px; height: 6px; background: white; border-radius: 50%; }
+.toggle:hover { border-color: var(--accent-line); color: var(--ink); }
+.toggle.safety:hover { border-color: var(--warm); color: var(--warm); }
+.toggle.safety input:checked + .toggle-dot { background: var(--warm); border-color: var(--warm); }
+.toggle:has(input:checked) { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-deep); font-weight: 500; }
+.toggle.safety:has(input:checked) { background: var(--warm-soft); border-color: var(--warm); color: var(--warn); }
 
-/* ============ Submit / actions ============ */
-.actions {
-  display: flex;
-  gap: 14px;
-  align-items: center;
-  flex-wrap: wrap;
-  margin-top: 40px;
-  padding-top: 32px;
-  border-top: 1px solid var(--line);
+/* Intake footer (Back / Continue) */
+.intake-footer {
+  position: sticky;
+  bottom: 0;
+  background: rgba(250, 247, 242, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-top: 1px solid var(--border);
+  padding: 16px 24px;
+  margin: 0 -24px;
 }
-.btn {
-  font-family: var(--sans);
-  font-weight: 600;
-  font-size: 15px;
-  border-radius: 8px;
-  padding: 14px 28px;
-  cursor: pointer;
-  border: 1.5px solid transparent;
-  transition: all 0.15s;
-  letter-spacing: 0.01em;
-}
-.btn-primary {
-  background: var(--sage-deep);
-  color: var(--bg);
-}
-.btn-primary:hover { background: var(--ink); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(43,63,54,0.18); }
-.btn-secondary {
-  background: transparent;
-  color: var(--ink-soft);
-  border-color: var(--line);
-}
-.btn-secondary:hover { border-color: var(--ink-soft); color: var(--ink); }
-.btn-danger {
-  background: transparent;
-  color: var(--rust);
-  border-color: var(--rust-soft);
-}
-.btn-danger:hover { background: var(--rust-soft); border-color: var(--rust); }
-.autosave-note {
-  margin-left: auto;
-  font-size: 12px;
-  color: var(--ink-mute);
-  font-style: italic;
-}
-.autosave-note.saving { color: var(--terra); }
-.autosave-note.saved { color: var(--sage); }
-
-/* ============ Section nav (desktop) ============ */
-.section-nav {
-  position: fixed;
-  left: max(24px, calc(50% - 660px));
-  top: 100px;
-  width: 180px;
-  font-size: 12px;
-  display: none;
-}
-@media (min-width: 1280px) { .section-nav { display: block; } }
-.section-nav-title {
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: var(--ink-mute);
-  margin-bottom: 10px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--line);
-}
-.section-nav a {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  padding: 5px 0;
-  color: var(--ink-mute);
-  text-decoration: none;
-  transition: color 0.12s;
-  font-size: 12px;
-}
-.section-nav a:hover { color: var(--ink); }
-.section-nav a.complete { color: var(--sage); }
-.section-nav a.partial { color: var(--terra); }
-.section-nav a .nav-count {
-  font-variant-numeric: tabular-nums;
-  font-size: 11px;
-  opacity: 0.6;
-}
-
-/* ============ Result panel ============ */
-.result {
-  background: var(--panel);
-  border: 1px solid var(--sage);
-  border-radius: 12px;
-  padding: 44px;
-  margin-top: 48px;
-  display: none;
-  box-shadow: 0 12px 48px rgba(43, 63, 54, 0.08);
-}
-.result.show { display: block; animation: rise 0.5s ease; }
-@keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-.result-eyebrow {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  color: var(--terra);
-  margin-bottom: 12px;
-}
-
-/* v1.3.1: Eligibility banner — surfaces the headline two-track decision */
-.eligibility-banner {
-  display: flex; align-items: flex-start; gap: 14px;
-  padding: 16px 18px; border-radius: 6px;
-  margin-bottom: 20px;
-  border-left: 4px solid;
-}
-.eligibility-banner.eligible {
-  background: rgba(93, 139, 107, 0.10); border-left-color: var(--sage);
-}
-.eligibility-banner.consult {
-  background: rgba(184, 92, 58, 0.08); border-left-color: var(--terra);
-}
-.eligibility-icon {
-  font-family: ui-monospace, "SF Mono", monospace; font-size: 22px; line-height: 1;
-  min-width: 28px; text-align: center; padding-top: 2px;
-}
-.eligibility-banner.eligible .eligibility-icon { color: var(--sage); }
-.eligibility-banner.consult .eligibility-icon { color: var(--terra); }
-.eligibility-title {
-  font-family: var(--serif); font-size: 18px;
-  color: var(--ink); margin-bottom: 4px;
-  letter-spacing: -0.01em; font-weight: 500;
-}
-.eligibility-sub {
-  font-size: 13.5px; line-height: 1.5; color: var(--ink-soft);
-}
-.eligibility-meta {
-  margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px;
-}
-.eligibility-meta .time-tag {
-  font-family: ui-monospace, "SF Mono", monospace; font-size: 10.5px;
-  padding: 3px 8px; border-radius: 3px;
-  background: rgba(93, 139, 107, 0.15); color: var(--sage);
-  letter-spacing: 0.04em;
-}
-.eligibility-banner.consult .eligibility-meta .time-tag {
-  background: rgba(184, 92, 58, 0.12); color: var(--terra);
-}
-.result-archetype-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 24px;
-  margin-bottom: 8px;
-}
-.result-archetype {
-  font-family: var(--serif);
-  font-size: 32px;
-  font-weight: 500;
-  letter-spacing: -0.02em;
-  color: var(--ink);
-  line-height: 1.1;
-}
-.result-sev {
-  font-family: var(--sans);
-  font-variant-numeric: tabular-nums;
-  font-weight: 700;
-  font-size: 22px;
-  padding: 4px 12px;
-  border-radius: 6px;
-  background: var(--sage-soft);
-  color: var(--sage-deep);
-  white-space: nowrap;
-}
-.result-sev.sev-10 { background: var(--rust-soft); color: var(--rust); }
-.result-sev.sev-8, .result-sev.sev-7 { background: #f4e1c8; color: #8a5a1f; }
-.result-sev.sev-6, .result-sev.sev-5 { background: var(--terra-soft); color: var(--terra); }
-.result-subtype { font-style: italic; color: var(--ink-mute); font-family: var(--serif); font-size: 15px; margin-bottom: 18px; }
-.result-auto {
-  display: inline-block;
-  margin: 8px 0 28px;
-  padding: 8px 14px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 500;
-}
-.result-auto.yes { background: var(--sage-soft); color: var(--sage-deep); }
-.result-auto.no { background: var(--rust-soft); color: var(--rust); }
-.result-block { margin-bottom: 28px; }
-.result-block h4 {
-  font-family: var(--sans);
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: var(--ink-mute);
-  margin-bottom: 12px;
-}
-.flags-row { display: flex; flex-wrap: wrap; gap: 8px; }
-.flag {
-  font-size: 12px;
-  font-family: ui-monospace, monospace;
-  padding: 5px 10px;
-  border-radius: 4px;
-  background: var(--bg-soft);
-  color: var(--ink-soft);
-  border: 1px solid var(--line);
-}
-.flag.history { background: var(--terra-soft); color: var(--rust); border-color: var(--terra); }
-.flag.safety { background: var(--rust-soft); color: var(--rust); border-color: var(--rust); font-weight: 600; }
-.flag.override { background: #f4e1c8; color: #8a5a1f; border-color: var(--amber); }
-.flag.empty { background: transparent; color: var(--ink-mute); border-style: dashed; font-style: italic; }
-.nbss-row {
+.intake-footer-inner {
+  max-width: 720px;
+  margin: 0 auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 0;
-  font-size: 13px;
-  border-bottom: 1px dotted var(--line-soft);
-}
-.nbss-row:last-child { border: 0; }
-.nbss-name { color: var(--ink-soft); font-family: ui-monospace, monospace; font-size: 12px; }
-.nbss-score { font-variant-numeric: tabular-nums; font-weight: 600; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
-.nbss-0 { background: var(--bg-soft); color: var(--ink-mute); }
-.nbss-1 { background: var(--sage-soft); color: var(--sage-deep); }
-.nbss-2 { background: #e8e0c8; color: var(--gold); }
-.nbss-3 { background: var(--terra-soft); color: var(--terra); }
-.nbss-4 { background: var(--rust-soft); color: var(--rust); }
-.pattern { color: var(--ink); font-weight: 500; margin: 6px 0; font-size: 14px; font-family: var(--serif); font-style: italic; }
-.trace-list { padding-left: 18px; color: var(--ink-soft); font-size: 13px; }
-.trace-list li { margin: 4px 0; }
-.phenotype-scores {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 12px;
+  flex-wrap: wrap;
 }
-.ps-row {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 14px 16px;
-  background: var(--bg);
-  border-radius: 8px;
-  border-left: 3px solid var(--line);
+.intake-footer .autosave-note {
+  font-size: 11px;
+  color: var(--ink-3);
+  font-style: italic;
+  font-family: 'Fraunces', serif;
+  font-weight: 300;
 }
-.ps-row.band-MODERATE { border-left-color: var(--ink-mute); }
-.ps-row.band-WATCHLIST { border-left-color: var(--amber); }
-.ps-row.band-HIGH { border-left-color: var(--terra); }
-.ps-row.band-VERY_HIGH { border-left-color: var(--rust); }
-.ps-code {
-  font-family: ui-monospace, "SF Mono", monospace;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  color: var(--ink-mute);
+.intake-footer .autosave-note.saving { color: var(--warm); }
+.intake-footer .autosave-note.saved { color: var(--accent); }
+@media (max-width: 540px) {
+  .intake-footer-inner { justify-content: space-between; }
+  .intake-footer .autosave-note { width: 100%; text-align: center; order: 3; }
 }
-.ps-name {
-  font-family: var(--sans);
-  color: var(--ink);
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 1.3;
-  margin-bottom: 4px;
-}
-.ps-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 8px;
-}
-.ps-pct {
-  font-family: var(--serif);
-  font-variant-numeric: tabular-nums;
-  font-weight: 500;
-  color: var(--ink);
-  font-size: 24px;
-  line-height: 1;
-  letter-spacing: -0.01em;
-}
-.ps-band {
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  padding: 3px 8px;
-  border-radius: 4px;
-  white-space: nowrap;
-}
-.ps-band.band-LOW { color: var(--ink-mute); background: var(--bg-soft); }
-.ps-band.band-MODERATE { color: var(--ink-soft); background: var(--bg-soft); }
-.ps-band.band-WATCHLIST { color: #8a5a1f; background: #f4e1c8; }
-.ps-band.band-HIGH { color: var(--terra); background: var(--terra-soft); }
-.ps-band.band-VERY_HIGH { color: var(--rust); background: var(--rust-soft); }
 
-.clinical-disclaimer {
-  margin-top: 32px;
-  padding: 16px 20px;
-  background: var(--bg-soft);
-  border-left: 3px solid var(--terra);
-  border-radius: 4px;
-  font-size: 13px;
-  color: var(--ink-soft);
-  line-height: 1.55;
-}
-.clinical-disclaimer strong { color: var(--ink); }
-
-.result-thanks {
-  display: block;
+/* ========== PROCESSING ========== */
+.processing-hero {
+  padding: 120px 24px 40px;
   text-align: center;
-  padding: 36px 24px 24px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+.processing-spinner {
+  width: 32px;
+  height: 32px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  margin: 32px auto;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.processing-status {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 14px;
+  color: var(--ink-3);
+  margin-top: 12px;
+  min-height: 20px;
+}
+
+/* ========== THANKS ========== */
+.thanks-hero {
+  padding: 80px 24px 40px;
+  text-align: center;
+  max-width: 580px;
+  margin: 0 auto;
 }
 .thanks-check {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: var(--sage);
+  background: var(--accent);
   color: var(--bg);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-size: 28px;
-  font-family: var(--sans);
+  font-family: 'Inter Tight';
   font-weight: 700;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
-.thanks-title {
-  font-family: var(--serif);
-  font-size: 32px;
-  font-weight: 500;
-  color: var(--ink);
-  margin-bottom: 14px;
-  letter-spacing: -0.015em;
-}
-.thanks-message {
+.thanks-hero h1 { margin-bottom: 14px; }
+.thanks-hero p.thanks-message {
+  color: var(--ink-2);
   font-size: 16px;
-  color: var(--ink-soft);
-  max-width: 480px;
-  margin: 0 auto;
   line-height: 1.6;
+  max-width: 480px;
+  margin: 0 auto 24px;
 }
 .thanks-note {
   margin-top: 24px;
   font-size: 13px;
-  color: var(--ink-mute);
+  color: var(--ink-3);
   font-style: italic;
-  font-family: var(--serif);
+  font-family: 'Fraunces', serif;
+  font-weight: 300;
 }
+
+.eligibility-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 20px 22px;
+  border-radius: 16px;
+  margin: 32px auto;
+  max-width: 540px;
+  text-align: left;
+  border-left: 4px solid;
+}
+.eligibility-banner.eligible { background: var(--accent-soft); border-left-color: var(--accent); }
+.eligibility-banner.consult  { background: var(--warm-soft); border-left-color: var(--warm); }
+.eligibility-icon {
+  font-family: ui-monospace, "SF Mono", monospace;
+  font-size: 22px;
+  line-height: 1;
+  min-width: 28px;
+  text-align: center;
+  padding-top: 2px;
+  font-weight: 600;
+}
+.eligibility-banner.eligible .eligibility-icon { color: var(--accent); }
+.eligibility-banner.consult .eligibility-icon { color: var(--warm); }
+.eligibility-title {
+  font-family: 'Fraunces', serif;
+  font-size: 18px;
+  color: var(--ink);
+  margin-bottom: 6px;
+  letter-spacing: -0.01em;
+  font-weight: 500;
+}
+.eligibility-sub { font-size: 13.5px; line-height: 1.5; color: var(--ink-2); }
+
+.thanks-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 28px;
+  flex-wrap: wrap;
+}
+
+/* Inline submit failure note */
+.submit-inline-note {
+  margin: 16px auto;
+  padding: 12px 16px;
+  background: var(--danger-soft);
+  border-left: 3px solid var(--danger);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--ink-2);
+  line-height: 1.5;
+  max-width: 540px;
+  text-align: left;
+  display: none;
+}
+.submit-inline-note.show { display: block; }
 
 footer.foot {
-  margin-top: 80px;
-  padding-top: 32px;
-  border-top: 1px solid var(--line);
+  margin: 80px auto 0;
+  padding: 28px 24px;
+  border-top: 1px solid var(--border);
   font-size: 12px;
-  color: var(--ink-mute);
+  color: var(--ink-3);
   text-align: center;
+  max-width: 720px;
 }
-footer.foot code { font-family: ui-monospace, monospace; color: var(--sage); }
+footer.foot code { font-family: ui-monospace, monospace; color: var(--accent); }
 
 @media (max-width: 720px) {
-  h1 { font-size: 32px; }
-  .shell { padding: 32px 18px 80px; }
-  .progress-inner { padding: 12px 18px; gap: 12px; }
-  .progress-brand { font-size: 14px; }
-  .q-row { grid-template-columns: 1fr; gap: 10px; }
-  .likert-btn { width: 44px; height: 44px; }
-  .history-section { padding: 24px 20px; }
-  .result { padding: 28px 20px; }
-  .result-archetype { font-size: 26px; }
-  .intro-meta { grid-template-columns: 1fr; }
+  .display-xl { font-size: 32px; }
+  .display-l  { font-size: 26px; }
+  .welcome-hero { padding: 56px 20px 32px; }
 }
 </style>
 </head>
 <body>
 
-<!-- ============ Sticky progress bar ============ -->
-<div class="progress-bar">
-  <div class="progress-inner">
-    <div class="progress-brand">NeuroSage Hub <em>· Heterogeneity Intake</em></div>
-    <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
-    <div class="progress-count"><strong id="progress-answered">0</strong> / 121 answered</div>
-  </div>
-</div>
-
-<!-- ============ Desktop side-nav ============ -->
-<nav class="section-nav" id="section-nav" aria-label="Section navigation">
-  <div class="section-nav-title">Sections</div>
-  <div id="section-nav-links"></div>
-</nav>
-
-<div class="shell">
-
-  <!-- ============ Intro ============ -->
-  <section class="intro">
-    <div class="eyebrow">Heterogeneity Intake · 121 questions</div>
-    <h1>Tell us about <em>your child</em>.</h1>
+<!-- ============ WELCOME ============ -->
+<section class="screen active" id="screen-welcome">
+  <div class="welcome-hero">
+    <span class="tag">Heterogeneity Intake · 121 questions · ~20 min</span>
+    <h1 class="display-xl">Tell us about <em>your child</em>.</h1>
     <p class="lede">
       Thanks for booking a call with us. This intake gives Dr. Kyle's team a complete picture of your child — nervous system, behaviour, history, what's going well, what's been hard, what you've noticed change over time. Filling it out before your call means we walk in already knowing your child, so the conversation can focus on the specifics rather than starting from scratch.
-      <br><br>
-      <strong>Score each item from 0 to 4</strong>, based on how often or how severely it applies. The form takes about 20-30 minutes and saves automatically — you can close it and return later.
     </p>
-    <div class="intro-meta">
+    <p class="lede">
+      <strong>Score each item from 0 to 4</strong>, based on how often or how severely it applies. The form saves automatically — you can close it and return later.
+    </p>
+
+    <div class="welcome-fields">
       <div class="field-block">
-        <label class="field-label" for="parent-email">Your email <span style="color:var(--rust);">*</span></label>
+        <label class="field-label" for="parent-email">Your email <span class="req">*</span></label>
         <input class="field-input" id="parent-email" type="email" placeholder="parent@example.com" required autocomplete="email">
-        <div class="field-help" style="font-size:12px;color:var(--ink-mute);margin-top:4px;">Required — used to identify this intake and send Dr. Kyle's team next-step instructions.</div>
+        <div class="field-help">Required — used to identify this intake and follow up.</div>
       </div>
       <div class="field-block">
-        <label class="field-label" for="parent-phone">Your phone number <span style="color:var(--rust);">*</span></label>
+        <label class="field-label" for="parent-phone">Your phone <span class="req">*</span></label>
         <input class="field-input" id="parent-phone" type="tel" placeholder="(555) 123-4567" required autocomplete="tel" maxlength="14">
       </div>
       <div class="field-block">
@@ -860,167 +585,82 @@ footer.foot code { font-family: ui-monospace, monospace; color: var(--sage); }
         <input class="field-input" id="child-age" type="number" min="1" max="18" value="5">
       </div>
     </div>
-  </section>
 
-  <!-- ============ Scale legend ============ -->
-  <div class="scale-legend">
-    <div class="scale-legend-title">Scoring scale</div>
-    <div class="scale-legend-items">
-      <span><strong>0</strong> Never / doesn't apply</span>
-      <span><strong>1</strong> Once or twice ever</span>
-      <span><strong>2</strong> Monthly or mild when present</span>
-      <span><strong>3</strong> Weekly or moderate when present</span>
-      <span><strong>4</strong> Daily / always / severe</span>
+    <button class="button-primary" id="welcome-begin">Begin <span>→</span></button>
+
+    <div class="welcome-meta">
+      <strong>Scoring scale.</strong> 0 — Never / doesn't apply. 1 — Rarely (once or twice ever). 2 — Sometimes (monthly or mild). 3 — Often (weekly or moderate). 4 — Always (daily or severe). If you genuinely don't know, pick <em>Unsure</em> and we'll skip it in scoring.
     </div>
   </div>
+</section>
 
-  <!-- ============ Phenotype sections (rendered by JS) ============ -->
-  <div id="phenotype-sections"></div>
-
-  <!-- ============ History & clinical observations ============ -->
-  <section class="section" id="history">
-    <div class="section-head">
-      <div class="section-title-block">
-        <div class="section-code">HX</div>
-        <div>
-          <div class="section-title">History &amp; clinical observations</div>
-          <div class="section-descriptor">Events, exposures, and patterns outside the symptom checklist</div>
-        </div>
+<!-- ============ INTAKE ============ -->
+<section class="screen" id="screen-intake">
+  <div class="intake-progress" id="intake-progress"></div>
+  <div class="intake-shell">
+    <div class="intake-header">
+      <div class="meta-row">
+        <span class="tag" id="intake-section-tag">Section 1 of 13</span>
+        <span class="progress-count"><strong id="intake-answered">0</strong> / 121 answered</span>
+      </div>
+      <h2 class="display-l" id="intake-section-title">Section</h2>
+    </div>
+    <div id="intake-body"></div>
+    <div class="intake-footer">
+      <div class="intake-footer-inner">
+        <button class="button-secondary" id="intake-back">← Back</button>
+        <span class="autosave-note" id="autosave-note">Autosaving locally…</span>
+        <button class="button-primary" id="intake-next">Continue →</button>
       </div>
     </div>
-
-    <div class="history-section">
-      <div class="toggle-group">
-        <div class="toggle-group-title">Regression history</div>
-        <div class="toggle-row">
-          <label class="toggle"><input type="checkbox" data-hist="regression_in_last_90_days"><span class="toggle-dot"></span>Regression in the last 90 days</label>
-          <label class="toggle"><input type="checkbox" data-hist="historic_regression_stable"><span class="toggle-dot"></span>Historic regression (now stable)</label>
-        </div>
-      </div>
-
-      <div class="toggle-group">
-        <div class="toggle-group-title">Environmental exposure</div>
-        <div class="toggle-row">
-          <label class="toggle"><input type="checkbox" data-hist="environmental_exposure"><span class="toggle-dot"></span>Mold / toxin exposure</label>
-          <label class="toggle"><input type="checkbox" data-hist="symptom_correlation_with_exposure"><span class="toggle-dot"></span>Symptoms correlate with exposure</label>
-          <label class="toggle"><input type="checkbox" data-hist="positive_mycotoxin_test"><span class="toggle-dot"></span>Positive mold / mycotoxin test</label>
-          <label class="toggle"><input type="checkbox" data-hist="positive_heavy_metal_test"><span class="toggle-dot"></span>Positive heavy metal test</label>
-          <label class="toggle"><input type="checkbox" data-hist="family_illness_cluster"><span class="toggle-dot"></span>Family illness cluster</label>
-        </div>
-      </div>
-
-      <div class="toggle-group">
-        <div class="toggle-group-title">Birth events</div>
-        <div class="toggle-row">
-          <label class="toggle"><input type="checkbox" data-hist="birth_trauma_diagnosis"><span class="toggle-dot"></span>Told your child had birth trauma</label>
-          <label class="toggle"><input type="checkbox" data-hist="cord_around_neck_hypoxia"><span class="toggle-dot"></span>Cord around neck at birth with hypoxia</label>
-          <label class="toggle"><input type="checkbox" data-hist="hypoxia"><span class="toggle-dot"></span>Birth hypoxia with neurological signs</label>
-          <label class="toggle"><input type="checkbox" data-hist="birth_nerve_injury"><span class="toggle-dot"></span>Birth nerve injury (face / mouth / swallow / voice)</label>
-          <label class="toggle"><input type="checkbox" data-hist="forceps_with_asymmetry"><span class="toggle-dot"></span>Forceps / vacuum delivery with asymmetry</label>
-          <label class="toggle"><input type="checkbox" data-hist="c_section"><span class="toggle-dot"></span>C-section (nonspecific)</label>
-          <label class="toggle"><input type="checkbox" data-hist="mild_jaundice"><span class="toggle-dot"></span>Mild jaundice (nonspecific)</label>
-        </div>
-      </div>
-
-      <div class="toggle-group">
-        <div class="toggle-group-title">Brain &amp; medical history</div>
-        <div class="toggle-row">
-          <label class="toggle"><input type="checkbox" data-hist="structural_brain_finding"><span class="toggle-dot"></span>Abnormal finding on brain scan (MRI / CT)</label>
-          <label class="toggle"><input type="checkbox" data-hist="genetic_syndrome"><span class="toggle-dot"></span>Congenital / genetic syndrome</label>
-          <label class="toggle"><input type="checkbox" data-hist="post_birth_hypoxic_event"><span class="toggle-dot"></span>Hypoxic event after birth</label>
-          <label class="toggle"><input type="checkbox" data-hist="anesthesia_complication"><span class="toggle-dot"></span>Anesthesia complication</label>
-          <label class="toggle"><input type="checkbox" data-hist="nicu_neuro_respiratory"><span class="toggle-dot"></span>NICU stay for neurological or respiratory problems</label>
-          <label class="toggle"><input type="checkbox" data-hist="concussion_tbi"><span class="toggle-dot"></span>Concussion / TBI after birth</label>
-        </div>
-      </div>
-
-      <div class="toggle-group">
-        <div class="toggle-group-title">Infections &amp; immune patterns</div>
-        <div class="toggle-row">
-          <label class="toggle"><input type="checkbox" data-hist="recurrent_strep"><span class="toggle-dot"></span>Recurrent strep</label>
-          <label class="toggle"><input type="checkbox" data-hist="recurrent_ear_sinus"><span class="toggle-dot"></span>Recurrent ear / sinus infections</label>
-          <label class="toggle"><input type="checkbox" data-hist="severe_infection_hospitalized"><span class="toggle-dot"></span>Severe infection requiring hospitalization</label>
-          <label class="toggle safety"><input type="checkbox" data-hist="active_hyperimmune_flare"><span class="toggle-dot"></span>Currently in an active flare</label>
-        </div>
-      </div>
-
-      <div class="toggle-group">
-        <div class="toggle-group-title">Safety signals</div>
-        <div class="toggle-row">
-          <label class="toggle safety"><input type="checkbox" data-hist="severe_self_injury"><span class="toggle-dot"></span>Severe self-injury</label>
-          <label class="toggle safety"><input type="checkbox" data-hist="severe_aggression"><span class="toggle-dot"></span>Severe aggression</label>
-          <label class="toggle safety"><input type="checkbox" data-hist="elopement_risk"><span class="toggle-dot"></span>Wanders or bolts (elopement risk)</label>
-          <label class="toggle"><input type="checkbox" data-hist="nonverbal_or_minimally_verbal"><span class="toggle-dot"></span>Nonverbal / minimally verbal</label>
-          <label class="toggle safety"><input type="checkbox" data-hist="weight_loss_failure_to_thrive"><span class="toggle-dot"></span>Weight loss / failure to thrive</label>
-        </div>
-      </div>
-
-      <div class="toggle-group">
-        <div class="toggle-group-title">Current health</div>
-        <div class="toggle-row">
-          <label class="toggle safety"><input type="checkbox" data-hist="currently_ill_or_recovering_48h"><span class="toggle-dot"></span>Currently ill, febrile, or recovering from illness in the last 48 hours</label>
-          <label class="toggle"><input type="checkbox" data-hist="recent_illness_30d"><span class="toggle-dot"></span>Significant illness or hospitalization in the past 30 days (now recovered)</label>
-        </div>
-      </div>
-
-      <div class="toggle-group">
-        <div class="toggle-group-title">Severe sleep pattern (check all that apply)</div>
-        <div class="toggle-row">
-          <label class="toggle safety"><input type="checkbox" data-hist="sleep_lt_4hr_2wk"><span class="toggle-dot"></span>Less than 4 hours total nightly sleep, consistently, for 2+ weeks</label>
-          <label class="toggle safety"><input type="checkbox" data-hist="sleep_reversal"><span class="toggle-dot"></span>Complete sleep-wake reversal (sleeps days, awake nights)</label>
-          <label class="toggle safety"><input type="checkbox" data-hist="night_waking_5plus"><span class="toggle-dot"></span>Wakes 5 or more times nightly with full alertness</label>
-        </div>
-      </div>
-
-      <div class="toggle-group">
-        <div class="toggle-group-title">Other</div>
-        <div class="toggle-row">
-          <label class="toggle"><input type="checkbox" data-hist="developmental_delay"><span class="toggle-dot"></span>General developmental delay</label>
-          <label class="toggle"><input type="checkbox" data-cc="adhd"><span class="toggle-dot"></span>Attention / ADHD is the only complaint</label>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============ Actions ============ -->
-  <div class="actions">
-    <button class="btn btn-primary" id="btn-classify">Generate clinical routing</button>
-    <button class="btn btn-secondary" id="btn-scroll-top">Back to top</button>
-    <button class="btn btn-danger" id="btn-clear">Clear &amp; restart</button>
-    <span class="autosave-note" id="autosave-note">Autosaving locally…</span>
   </div>
+</section>
 
-  <!-- ============ Result panel ============ -->
-  <section class="result" id="result">
-    <div class="result-thanks">
-      <div class="thanks-check">✓</div>
-      <div class="thanks-title">Thank you</div>
-      <div class="thanks-message" id="thanks-message">Your intake has been saved. Dr. Kyle's team will review your answers before your call so they can come in already knowing your child.</div>
-      <div class="thanks-note">You can close this page. Your answers are saved on this device if you need to come back and make changes.</div>
-    </div>
+<!-- ============ PROCESSING ============ -->
+<section class="screen" id="screen-processing">
+  <div class="processing-hero">
+    <span class="tag">Submitting</span>
+    <h2 class="display-l" style="margin-top: 24px;">Building <em>your child's</em> profile</h2>
+    <div class="processing-spinner"></div>
+    <p class="processing-status" id="processing-status">Analyzing phenotype scores…</p>
+  </div>
+</section>
 
-    <!-- v1.3.1: eligibility banner — shows headline two-track decision -->
+<!-- ============ THANKS ============ -->
+<section class="screen" id="screen-thanks">
+  <div class="thanks-hero">
+    <div class="thanks-check">✓</div>
+    <h1 class="display-l">Thank you.</h1>
+    <p class="thanks-message" id="thanks-message">Your intake has been saved. Dr. Kyle's team will review your answers before your call so they can come in already knowing your child.</p>
+
     <div class="eligibility-banner" id="eligibility-banner" style="display:none;">
       <div class="eligibility-icon" id="eligibility-icon"></div>
       <div class="eligibility-body">
         <div class="eligibility-title" id="eligibility-title"></div>
         <div class="eligibility-sub" id="eligibility-sub"></div>
-        <div class="eligibility-meta" id="eligibility-meta"></div>
       </div>
     </div>
-  </section>
 
-  <footer class="foot">
-    <p>NeuroSage Hub · Heterogeneity Intake · Form <code>v1.3.7</code> · Engine <code>v1.3.2</code> · 121 questions across 12 phenotypes</p>
-  </footer>
-</div>
+    <div class="submit-inline-note" id="submit-inline-note"></div>
+
+    <p class="thanks-note">You can close this page. Your answers are saved on this device if you need to come back and make changes.</p>
+
+    <div class="thanks-actions">
+      <button class="button-secondary" id="thanks-review">Review my answers</button>
+    </div>
+  </div>
+</section>
+
+<footer class="foot">
+  <p>NeuroSage Hub · Heterogeneity Intake · Form <code>v1.3.8</code> · Engine <code>v1.3.2</code> · 121 questions across 12 phenotypes</p>
+</footer>
 
 <script>
-// ============================================================
-//  121 QUESTIONS — generated from system_routing_reference_v1_2_4.json
-// ============================================================
+// =====================================================
+// CONTENT — 121 questions, identical to v1.3.7
+// =====================================================
 const PHENOTYPE_QUESTIONS = [
-  { code: "P01", id: "sensory_autonomic_overload", name: "Sensory-Autonomic Overload", descriptor: "Hypervigilant or overloaded nervous system",
+  { code: "P01", id: "sensory_autonomic_overload", name: "Sensory-Autonomic Overload", descriptor: "How your child's nervous system responds to the world around them.",
     questions: [
       { qid: "P01_q01", text: "Easily startled", sub: "Emotional & Sensory Regulation" },
       { qid: "P01_q02", text: "Sensitive to sound", sub: "Emotional & Sensory Regulation" },
@@ -1039,7 +679,7 @@ const PHENOTYPE_QUESTIONS = [
       { qid: "P01_q15", text: "Dilated pupils", sub: "Autonomic Regulation" },
       { qid: "P01_q16", text: "Fluctuating energy", sub: "Autonomic Regulation" },
     ]},
-  { code: "P02", id: "left_hemisphere_fixation", name: "Left Hemisphere Fixation", descriptor: "Rigid, analytical, or OCD-systemizing profile",
+  { code: "P02", id: "left_hemisphere_fixation", name: "Left Hemisphere Fixation", descriptor: "Rigid, analytical, or systemizing patterns.",
     questions: [
       { qid: "P02_q01", text: "OCD tendencies", sub: null },
       { qid: "P02_q02", text: "Strong fixation on topics", sub: null },
@@ -1052,7 +692,7 @@ const PHENOTYPE_QUESTIONS = [
       { qid: "P02_q09", text: "Prefers facts over emotions", sub: null },
       { qid: "P02_q10", text: "Difficulty with flexibility or change", sub: null },
     ]},
-  { code: "P03", id: "right_hemisphere_social_emotional", name: "Right Hemisphere Social-Emotional", descriptor: "Social-emotional or inhibition dysregulation",
+  { code: "P03", id: "right_hemisphere_social_emotional", name: "Right Hemisphere Social-Emotional", descriptor: "Social-emotional awareness and behavioral inhibition.",
     questions: [
       { qid: "P03_q01", text: "Poor social awareness", sub: null },
       { qid: "P03_q02", text: "Difficulty reading emotions", sub: null },
@@ -1065,7 +705,7 @@ const PHENOTYPE_QUESTIONS = [
       { qid: "P03_q09", text: "Poor eye contact", sub: null },
       { qid: "P03_q10", text: "Difficulty understanding social roles", sub: null },
     ]},
-  { code: "P04", id: "brainstem_primitive_reflex", name: "Brainstem / Primitive Reflex", descriptor: "Developmental immaturity phenotype",
+  { code: "P04", id: "brainstem_primitive_reflex", name: "Brainstem / Primitive Reflex", descriptor: "Reflexes and developmental immaturity.",
     questions: [
       { qid: "P04_q01", text: "Retained Moro reflex symptoms", sub: null },
       { qid: "P04_q02", text: "Retained ATNR reflex symptoms", sub: null },
@@ -1078,7 +718,7 @@ const PHENOTYPE_QUESTIONS = [
       { qid: "P04_q09", text: "Delayed milestones", sub: null },
       { qid: "P04_q10", text: "Oral-motor dysfunction", sub: null },
     ]},
-  { code: "P05", id: "vestibular_cerebellar", name: "Vestibular-Cerebellar", descriptor: "Balance, timing, and coordination phenotype",
+  { code: "P05", id: "vestibular_cerebellar", name: "Vestibular-Cerebellar", descriptor: "Balance, timing, and coordination.",
     questions: [
       { qid: "P05_q01", text: "Poor balance", sub: null },
       { qid: "P05_q02", text: "Clumsiness", sub: null },
@@ -1091,7 +731,7 @@ const PHENOTYPE_QUESTIONS = [
       { qid: "P05_q09", text: "Poor eye tracking", sub: null },
       { qid: "P05_q10", text: "Difficulty catching a ball", sub: null },
     ]},
-  { code: "P06", id: "language_apraxia", name: "Language / Apraxia / Cranial Nerve", descriptor: "Speech-motor and language network phenotype",
+  { code: "P06", id: "language_apraxia", name: "Language / Apraxia / Cranial Nerve", descriptor: "Speech-motor and language network.",
     questions: [
       { qid: "P06_q01", text: "Delayed speech", sub: null },
       { qid: "P06_q02", text: "Verbal apraxia features", sub: null },
@@ -1103,7 +743,7 @@ const PHENOTYPE_QUESTIONS = [
       { qid: "P06_q08", text: "Difficulty understanding language", sub: null },
       { qid: "P06_q09", text: "Poor expressive communication", sub: null },
     ]},
-  { code: "P07", id: "metabolic_mitochondrial", name: "Metabolic / Mitochondrial", descriptor: "Low-energy or oxidative-stress phenotype",
+  { code: "P07", id: "metabolic_mitochondrial", name: "Metabolic / Mitochondrial", descriptor: "Energy, stamina, and oxidative-stress signs.",
     questions: [
       { qid: "P07_q01", text: "Fatigue", sub: null },
       { qid: "P07_q02", text: "Poor stamina", sub: null },
@@ -1115,7 +755,7 @@ const PHENOTYPE_QUESTIONS = [
       { qid: "P07_q08", text: "Sleep dysregulation", sub: null },
       { qid: "P07_q09", text: "Fluctuating energy", sub: null },
     ]},
-  { code: "P08", id: "gi_dysbiosis_histamine", name: "GI / Dysbiosis / Histamine", descriptor: "Gut-brain inflammatory phenotype",
+  { code: "P08", id: "gi_dysbiosis_histamine", name: "GI / Dysbiosis / Histamine", descriptor: "Gut-brain inflammatory patterns.",
     questions: [
       { qid: "P08_q01", text: "Constipation", sub: null },
       { qid: "P08_q02", text: "Diarrhea", sub: null },
@@ -1130,7 +770,7 @@ const PHENOTYPE_QUESTIONS = [
       { qid: "P08_q11", text: "Asthma or wheezing", sub: null },
       { qid: "P08_q12", text: "Flushing or red ears", sub: null },
     ]},
-  { code: "P09", id: "arfid_feeding_dysfunction", name: "ARFID / Feeding Dysfunction", descriptor: "Severe feeding-selectivity phenotype",
+  { code: "P09", id: "arfid_feeding_dysfunction", name: "ARFID / Feeding Dysfunction", descriptor: "Feeding selectivity and food-related behavior.",
     questions: [
       { qid: "P09_q01", text: "Severe picky eating", sub: null },
       { qid: "P09_q02", text: "Texture aversion", sub: null },
@@ -1143,7 +783,7 @@ const PHENOTYPE_QUESTIONS = [
       { qid: "P09_q09", text: "Pocketing food", sub: null },
       { qid: "P09_q10", text: "Feeding anxiety", sub: null },
     ]},
-  { code: "P10", id: "hyperexcitability_seizure", name: "Hyperexcitability / Seizure", descriptor: "Cortical excitability phenotype",
+  { code: "P10", id: "hyperexcitability_seizure", name: "Hyperexcitability / Seizure", descriptor: "Cortical excitability and seizure-spectrum signs.",
     questions: [
       { qid: "P10_q01", text: "Staring spells", sub: null },
       { qid: "P10_q02", text: "Seizures or history of seizures", sub: null },
@@ -1153,7 +793,7 @@ const PHENOTYPE_QUESTIONS = [
       { qid: "P10_q06", text: "Emotional dysregulation after overstimulation", sub: null },
       { qid: "P10_q07", text: "Sudden behavioral shifts", sub: null },
     ]},
-  { code: "P11", id: "pans_pandas_immune_regression", name: "PANS / PANDAS / Immune Regression", descriptor: "Immune-triggered neurodevelopmental regression phenotype",
+  { code: "P11", id: "pans_pandas_immune_regression", name: "PANS / PANDAS / Immune Regression", descriptor: "Immune-triggered neurodevelopmental shifts.",
     questions: [
       { qid: "P11_q01", text: "Sudden onset OCD", sub: null },
       { qid: "P11_q02", text: "Sudden regression", sub: null },
@@ -1166,7 +806,7 @@ const PHENOTYPE_QUESTIONS = [
       { qid: "P11_q09", text: "Handwriting decline", sub: null },
       { qid: "P11_q10", text: "Frequent inflammatory flares", sub: null },
     ]},
-  { code: "P12", id: "higher_cognitive_hyperlexia", name: "Higher Cognitive / Hyperlexia", descriptor: "Advanced memorization or systemizing phenotype (label only)",
+  { code: "P12", id: "higher_cognitive_hyperlexia", name: "Higher Cognitive / Hyperlexia", descriptor: "Advanced memorization or systemizing strengths.",
     questions: [
       { qid: "P12_q01", text: "Memorizes numbers easily", sub: null },
       { qid: "P12_q02", text: "Memorizes letters easily", sub: null },
@@ -1178,26 +818,84 @@ const PHENOTYPE_QUESTIONS = [
       { qid: "P12_q08", text: "Difficulty with abstract thinking", sub: null },
     ]},
 ];
-const TOTAL_QUESTIONS = PHENOTYPE_QUESTIONS.reduce((s, p) => s + p.questions.length, 0);
 
-const ARCHETYPE_NAMES = {
-  severe_dysregulation_10: { name: 'Severe Dysregulation', sev: '10/10' },
-  acquired_regression_8: { name: 'Acquired Regression', sev: '8/10' },
-  hyperimmune_pans_pandas_7: { name: 'Hyperimmune / PANS-PANDAS', sev: '7/10' },
-  environmental_neuroinflammatory_6: { name: 'Environmental Neuroinflammatory', sev: '6/10' },
-  metabolic_5: { name: 'Metabolic / Nutritional', sev: '5/10' },
-  birth_trauma_structural_4: { name: 'Birth Trauma / Structural', sev: '4/10' },
-  sensory_motor_3: { name: 'Sensory-Motor', sev: '3/10' },
-  foundational_2: { name: 'Foundational Developmental', sev: '2/10' },
-  no_template_clinician_consult: { name: 'No Template — Clinician Consult', sev: 'consult' },
+// History section — same structure as v1.3.7
+const HISTORY_SECTION = {
+  code: "HX",
+  name: "History & clinical observations",
+  descriptor: "Events, exposures, and patterns outside the symptom checklist.",
+  groups: [
+    { title: "Regression history", items: [
+      { key: "regression_in_last_90_days", label: "Regression in the last 90 days" },
+      { key: "historic_regression_stable", label: "Historic regression (now stable)" },
+    ]},
+    { title: "Environmental exposure", items: [
+      { key: "environmental_exposure", label: "Mold / toxin exposure" },
+      { key: "symptom_correlation_with_exposure", label: "Symptoms correlate with exposure" },
+      { key: "positive_mycotoxin_test", label: "Positive mold / mycotoxin test" },
+      { key: "positive_heavy_metal_test", label: "Positive heavy metal test" },
+      { key: "family_illness_cluster", label: "Family illness cluster" },
+    ]},
+    { title: "Birth events", items: [
+      { key: "birth_trauma_diagnosis", label: "Told your child had birth trauma" },
+      { key: "cord_around_neck_hypoxia", label: "Cord around neck at birth with hypoxia" },
+      { key: "hypoxia", label: "Birth hypoxia with neurological signs" },
+      { key: "birth_nerve_injury", label: "Birth nerve injury (face / mouth / swallow / voice)" },
+      { key: "forceps_with_asymmetry", label: "Forceps / vacuum delivery with asymmetry" },
+      { key: "c_section", label: "C-section (nonspecific)" },
+      { key: "mild_jaundice", label: "Mild jaundice (nonspecific)" },
+    ]},
+    { title: "Brain & medical history", items: [
+      { key: "structural_brain_finding", label: "Abnormal finding on brain scan (MRI / CT)" },
+      { key: "genetic_syndrome", label: "Congenital / genetic syndrome" },
+      { key: "post_birth_hypoxic_event", label: "Hypoxic event after birth" },
+      { key: "anesthesia_complication", label: "Anesthesia complication" },
+      { key: "nicu_neuro_respiratory", label: "NICU stay for neurological or respiratory problems" },
+      { key: "concussion_tbi", label: "Concussion / TBI after birth" },
+    ]},
+    { title: "Infections & immune patterns", items: [
+      { key: "recurrent_strep", label: "Recurrent strep" },
+      { key: "recurrent_ear_sinus", label: "Recurrent ear / sinus infections" },
+      { key: "severe_infection_hospitalized", label: "Severe infection requiring hospitalization" },
+      { key: "active_hyperimmune_flare", label: "Currently in an active flare", safety: true },
+    ]},
+    { title: "Safety signals", items: [
+      { key: "severe_self_injury", label: "Severe self-injury", safety: true },
+      { key: "severe_aggression", label: "Severe aggression", safety: true },
+      { key: "elopement_risk", label: "Wanders or bolts (elopement risk)", safety: true },
+      { key: "nonverbal_or_minimally_verbal", label: "Nonverbal / minimally verbal" },
+      { key: "weight_loss_failure_to_thrive", label: "Weight loss / failure to thrive", safety: true },
+    ]},
+    { title: "Current health", items: [
+      { key: "currently_ill_or_recovering_48h", label: "Currently ill, febrile, or recovering from illness in the last 48 hours", safety: true },
+      { key: "recent_illness_30d", label: "Significant illness or hospitalization in the past 30 days (now recovered)" },
+    ]},
+    { title: "Severe sleep pattern (check all that apply)", items: [
+      { key: "sleep_lt_4hr_2wk", label: "Less than 4 hours total nightly sleep, consistently, for 2+ weeks", safety: true },
+      { key: "sleep_reversal", label: "Complete sleep-wake reversal (sleeps days, awake nights)", safety: true },
+      { key: "night_waking_5plus", label: "Wakes 5 or more times nightly with full alertness", safety: true },
+    ]},
+    { title: "Other", items: [
+      { key: "developmental_delay", label: "General developmental delay" },
+      { key: "adhd", label: "Attention / ADHD is the only complaint", cc: true },
+    ]},
+  ]
 };
 
-const NBSS_DOMAINS = [
-  'gut_brain_axis', 'environmental_toxic_load', 'neuroimmune_activation',
-  'blood_brain_barrier', 'basal_ganglia_dysfunction', 'metabolic_instability',
-  'mitochondrial_energy', 'circadian_rhythm', 'developmental_brain_organization', 'sensory_safety'
-];
+// Section list for the multi-screen flow: 12 phenotypes + history = 13 sections
+const SECTIONS = [...PHENOTYPE_QUESTIONS, HISTORY_SECTION];
 
+const TOTAL_QUESTIONS = PHENOTYPE_QUESTIONS.reduce((s, p) => s + p.questions.length, 0);
+const LIKERT_LABELS = ['Never', 'Rarely', 'Sometimes', 'Often', 'Always'];
+// "Unsure" is a sixth answer state that means: the parent saw the question and
+// chose to opt out of answering. Stored as the string 'unsure' (not a number),
+// so the engine can distinguish it from "0 / Never" and from unanswered (undefined).
+// Engine behavior: excluded from both numerator AND denominator in phenotype scoring.
+const UNSURE = 'unsure';
+
+// =====================================================
+// ENGINE — v1.3.2 (identical to v1.3.7)
+// =====================================================
 const BANDS = ['LOW', 'MODERATE', 'WATCHLIST', 'HIGH', 'VERY_HIGH'];
 function bandOf(pct) {
   if (pct >= 75) return 'VERY_HIGH';
@@ -1208,37 +906,25 @@ function bandOf(pct) {
 }
 function bandAtLeast(band, target) { return BANDS.indexOf(band) >= BANDS.indexOf(target); }
 
-// ============================================================
-//  Application state
-// ============================================================
 const STORAGE_KEY = 'neurosage_intake_v1_0';
-
-// v1.3.3: GHL webhook config — production endpoint for NeuroHome sub-account
 const GHL_WEBHOOK_URL = 'https://services.leadconnectorhq.com/hooks/OzXiG0YQaeEKh2w5XeyU/webhook-trigger/4c769438-be07-4700-835b-48961cc6885a';
-const INTAKE_FORM_VERSION = 'v1.3.7';
-// Engine version reflects routing-logic schema, not form-shell version.
-// v1.3.2 = acute_illness_fever + severe_sleep_collapse safety gates wired, recent_illness_watch modifier flag.
+const INTAKE_FORM_VERSION = 'v1.3.8';
 const INTAKE_ENGINE_VERSION = 'v1.3.2';
-
-// v1.3.4: submit state machine. Prevents double-submission while a POST is in flight.
-// Transitions: 'idle' -> 'submitting' -> ('submitted_success' [terminal] | 'submitted_failed' -> 'idle' via retry)
-// btn-clear handler also resets this back to 'idle'.
-let submitPhase = 'idle';
-// v1.3.4: monotonic counter. Each submit attempt captures the current value; callbacks ignore
-// themselves if a newer attempt has started. Prevents stale late-arriving original responses
-// from overwriting the state of an in-flight retry.
-let submitGeneration = 0;
 const SUBMISSION_TIMEOUT_MS = 30000;
 
+let submitPhase = 'idle';
+let submitGeneration = 0;
+
 const state = {
-  scores: {},        // qid -> 0..4
-  history: {},       // hist key -> bool
-  cc: {},            // chief complaint flags
+  scores: {},
+  history: {},
+  cc: {},
   childName: '',
   age: 5,
-  email: '',         // v1.3.3: parent email, required for GHL submission
-  phone: '',         // v1.3.7: parent phone, required for GHL submission (binding deferred)
-  contactId: '',     // v1.3.3: GHL contact ID, optional (from magic-link URL param)
+  email: '',
+  phone: '',
+  contactId: '',
+  currentSection: 0,
 };
 
 function loadFromStorage() {
@@ -1255,14 +941,11 @@ function loadFromStorage() {
       state.phone = parsed.phone || '';
       state.contactId = parsed.contactId || '';
     }
-  } catch (e) { /* corrupt or absent — ignore */ }
-  // URL param overrides on initial load
+  } catch (e) { /* corrupt/absent — ignore */ }
   if (typeof window !== 'undefined' && window.location && window.location.search) {
     const params = new URLSearchParams(window.location.search);
-    // v1.3.3: magic-link prefill from call-confirmation email
     const urlEmail = params.get('email');
     if (urlEmail) state.email = urlEmail;
-    // v1.3.7: magic-link phone prefill
     const urlPhone = params.get('phone');
     if (urlPhone) state.phone = urlPhone;
     const urlCid = params.get('cid');
@@ -1277,7 +960,9 @@ function saveToStorage() {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      const persistable = { ...state };
+      delete persistable.currentSection;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(persistable));
       if (note) { note.textContent = 'Saved'; note.className = 'autosave-note saved'; }
     } catch (e) {
       if (note) { note.textContent = 'Could not save — storage unavailable'; note.className = 'autosave-note'; }
@@ -1285,173 +970,280 @@ function saveToStorage() {
   }, 250);
 }
 
-// ============================================================
-//  UI build
-// ============================================================
-function buildSections() {
-  const root = document.getElementById('phenotype-sections');
-  const navLinks = document.getElementById('section-nav-links');
-  root.innerHTML = '';
-  navLinks.innerHTML = '';
+// =====================================================
+// SCREEN NAVIGATION
+// =====================================================
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  window.scrollTo(0, 0);
+}
 
-  PHENOTYPE_QUESTIONS.forEach(p => {
-    const sec = document.createElement('section');
-    sec.className = 'section';
-    sec.id = 'sec-' + p.code;
+// =====================================================
+// WELCOME → INTAKE
+// =====================================================
+function setupWelcome() {
+  const emailEl = document.getElementById('parent-email');
+  const phoneEl = document.getElementById('parent-phone');
+  const nameEl  = document.getElementById('child-name');
+  const ageEl   = document.getElementById('child-age');
 
-    const head = document.createElement('div');
-    head.className = 'section-head';
-    head.innerHTML = `
-      <div class="section-title-block">
-        <div class="section-code">${p.code}</div>
-        <div>
-          <div class="section-title">${p.name}</div>
-          <div class="section-descriptor">${p.descriptor}</div>
-        </div>
-      </div>
-      <div class="section-pill"><strong data-sec-count="${p.code}">0</strong> / ${p.questions.length}</div>
-    `;
-    sec.appendChild(head);
+  emailEl.value = state.email || '';
+  nameEl.value  = state.childName || '';
+  ageEl.value   = state.age || 5;
+  // Phone: normalize stored value to formatted display
+  const rawDigits = (state.phone || '').replace(/\D/g, '').slice(0, 10);
+  phoneEl.value = rawDigits.length > 0 ? formatPhoneNANP(rawDigits) : '';
+  state.phone = phoneEl.value;
 
-    // Compact scale reminder, right-aligned so numbers sit above the likert buttons
-    const scale = document.createElement('div');
-    scale.className = 'section-scale';
-    scale.setAttribute('aria-hidden', 'true');
-    scale.innerHTML = `
-      <span class="section-scale-item"><span class="section-scale-num">0</span>Never / N/A</span>
-      <span class="section-scale-item"><span class="section-scale-num">1</span>Once or twice ever</span>
-      <span class="section-scale-item"><span class="section-scale-num">2</span>Monthly / mild</span>
-      <span class="section-scale-item"><span class="section-scale-num">3</span>Weekly / moderate</span>
-      <span class="section-scale-item"><span class="section-scale-num">4</span>Daily / severe</span>
-    `;
-    sec.appendChild(scale);
+  emailEl.addEventListener('input', () => { state.email = emailEl.value.trim(); saveToStorage(); });
+  nameEl.addEventListener('input',  () => { state.childName = nameEl.value; saveToStorage(); });
+  ageEl.addEventListener('input',   () => { state.age = parseInt(ageEl.value) || 5; saveToStorage(); });
 
-    // Group by subsection if present
-    let currentSub = '__INIT__';
-    p.questions.forEach(q => {
-      if (q.sub && q.sub !== currentSub) {
-        currentSub = q.sub;
-        const subLabel = document.createElement('div');
-        subLabel.className = 'subsection-label';
-        subLabel.textContent = q.sub;
-        sec.appendChild(subLabel);
-      }
-      const row = document.createElement('div');
-      row.className = 'q-row';
-      row.dataset.qid = q.qid;
-      row.innerHTML = `
-        <div class="q-text">${q.text}<small>${q.qid}</small></div>
-        <div class="likert">
-          ${[0,1,2,3,4].map(v => `<button type="button" class="likert-btn" data-qid="${q.qid}" data-val="${v}" aria-label="${q.text}: score ${v}">${v}</button>`).join('')}
-        </div>
-      `;
-      sec.appendChild(row);
-    });
-
-    root.appendChild(sec);
-
-    // Side-nav link
-    const a = document.createElement('a');
-    a.href = '#sec-' + p.code;
-    a.dataset.navCode = p.code;
-    a.innerHTML = `<span>${p.code}. ${p.name}</span><span class="nav-count" data-nav-count="${p.code}">0/${p.questions.length}</span>`;
-    navLinks.appendChild(a);
+  // Phone formatter with cursor preservation (lifted from v1.3.7)
+  phoneEl.addEventListener('input', (e) => {
+    const input = e.target;
+    const oldValue = input.value;
+    const oldCursor = input.selectionStart || 0;
+    const digitsBeforeCursor = oldValue.slice(0, oldCursor).replace(/\D/g, '').length;
+    const allDigits = oldValue.replace(/\D/g, '').slice(0, 10);
+    const formatted = formatPhoneNANP(allDigits);
+    input.value = formatted;
+    let newCursor = 0, digitsSeen = 0;
+    for (let i = 0; i < formatted.length; i++) {
+      if (digitsSeen >= digitsBeforeCursor) break;
+      if (/\d/.test(formatted[i])) digitsSeen++;
+      newCursor = i + 1;
+    }
+    input.setSelectionRange(newCursor, newCursor);
+    state.phone = formatted;
+    saveToStorage();
   });
 
-  // Wire likert clicks
-  document.querySelectorAll('.likert-btn').forEach(btn => {
+  document.getElementById('welcome-begin').addEventListener('click', () => {
+    // Validate identifiers before letting them through to the intake.
+    // Engine + payload require valid email + 10-digit phone.
+    const email = (state.email || '').trim();
+    const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    if (!emailValid) {
+      emailEl.style.borderColor = 'var(--danger)';
+      emailEl.focus();
+      alert('Please enter your email before continuing. Dr. Kyle\'s team uses it to follow up about your intake.');
+      return;
+    }
+    emailEl.style.borderColor = '';
+    const phoneDigits = (state.phone || '').replace(/\D/g, '');
+    if (phoneDigits.length !== 10) {
+      phoneEl.style.borderColor = 'var(--danger)';
+      phoneEl.focus();
+      alert('Please enter a 10-digit US phone number, e.g. (555) 123-4567.');
+      return;
+    }
+    phoneEl.style.borderColor = '';
+
+    state.currentSection = 0;
+    renderIntakeSection();
+    showScreen('intake');
+  });
+}
+
+// =====================================================
+// INTAKE RENDERING
+// =====================================================
+function renderIntakeSection() {
+  const section = SECTIONS[state.currentSection];
+  const isHistory = section.code === 'HX';
+  const sectionNum = state.currentSection + 1;
+  const total = SECTIONS.length;
+
+  document.getElementById('intake-section-tag').textContent = `Section ${sectionNum} of ${total} · ${section.code}`;
+  document.getElementById('intake-section-title').textContent = section.name;
+
+  // Progress dots
+  const progressEl = document.getElementById('intake-progress');
+  progressEl.innerHTML = SECTIONS.map((_, i) => {
+    let cls = '';
+    if (i < state.currentSection) cls = 'complete';
+    else if (i === state.currentSection) cls = 'active';
+    return `<div class="intake-progress-bar ${cls}"></div>`;
+  }).join('');
+
+  // Body
+  const body = document.getElementById('intake-body');
+  let html = `<div class="section-card">`;
+  if (section.descriptor) html += `<div class="section-card-sub">${section.descriptor}</div>`;
+
+  if (isHistory) {
+    section.groups.forEach(g => {
+      html += `<div class="toggle-group"><div class="toggle-group-title">${g.title}</div><div class="toggle-row">`;
+      g.items.forEach(item => {
+        const isSafety = item.safety ? 'safety' : '';
+        const dataAttr = item.cc ? `data-cc="${item.key}"` : `data-hist="${item.key}"`;
+        const checked = item.cc ? !!state.cc[item.key] : !!state.history[item.key];
+        html += `
+          <label class="toggle ${isSafety}">
+            <input type="checkbox" ${dataAttr} ${checked ? 'checked' : ''}>
+            <span class="toggle-dot"></span>${item.label}
+          </label>`;
+      });
+      html += `</div></div>`;
+    });
+  } else {
+    // Phenotype section
+    let currentSub = '__INIT__';
+    section.questions.forEach(q => {
+      if (q.sub && q.sub !== currentSub) {
+        currentSub = q.sub;
+        html += `<div class="subsection-label">${q.sub}</div>`;
+      }
+      const val = state.scores[q.qid];
+      html += `
+        <div class="question" data-qid="${q.qid}">
+          <div class="question-text">${q.text}<small>${q.qid}</small></div>
+          <div class="likert">
+            ${[0,1,2,3,4].map(v => `
+              <button type="button" class="likert-btn ${val === v ? 'selected' : ''}" data-qid="${q.qid}" data-val="${v}" aria-label="${q.text}: score ${v} (${LIKERT_LABELS[v]})">
+                <span class="likert-val">${v}</span>
+                <span>${LIKERT_LABELS[v]}</span>
+              </button>`).join('')}
+            <button type="button" class="likert-btn likert-unsure ${val === UNSURE ? 'selected' : ''}" data-qid="${q.qid}" data-val="unsure" aria-label="${q.text}: unsure / skip">
+              <span class="likert-val">?</span>
+              <span>Unsure</span>
+            </button>
+          </div>
+        </div>`;
+    });
+  }
+  html += `</div>`;
+  body.innerHTML = html;
+
+  // Wire likert buttons
+  body.querySelectorAll('.likert-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const qid = btn.dataset.qid;
-      const val = parseInt(btn.dataset.val);
-      // Toggle: if same value clicked again, clear
+      const rawVal = btn.dataset.val;
+      // 'unsure' is a sentinel string; 0–4 come through as numeric strings.
+      const val = rawVal === 'unsure' ? UNSURE : parseInt(rawVal);
       if (state.scores[qid] === val) {
         delete state.scores[qid];
       } else {
         state.scores[qid] = val;
       }
       refreshQuestionRow(qid);
-      refreshProgress();
+      refreshAnsweredCount();
       saveToStorage();
     });
   });
+
+  // Wire toggles
+  body.querySelectorAll('[data-hist]').forEach(el => {
+    el.addEventListener('change', () => {
+      state.history[el.dataset.hist] = el.checked;
+      saveToStorage();
+    });
+  });
+  body.querySelectorAll('[data-cc]').forEach(el => {
+    el.addEventListener('change', () => {
+      state.cc[el.dataset.cc] = el.checked;
+      saveToStorage();
+    });
+  });
+
+  // Footer button states
+  document.getElementById('intake-back').style.visibility = state.currentSection === 0 ? 'hidden' : 'visible';
+  const nextBtn = document.getElementById('intake-next');
+  const isLast = state.currentSection === SECTIONS.length - 1;
+  nextBtn.innerHTML = isLast ? 'Submit intake <span>→</span>' : 'Continue <span>→</span>';
+
+  refreshAnsweredCount();
 }
 
 function refreshQuestionRow(qid) {
-  const row = document.querySelector(`.q-row[data-qid="${qid}"]`);
-  if (!row) return;
+  const buttons = document.querySelectorAll(`.likert-btn[data-qid="${qid}"]`);
   const val = state.scores[qid];
-  row.querySelectorAll('.likert-btn').forEach(b => {
-    b.classList.toggle('selected', parseInt(b.dataset.val) === val);
+  buttons.forEach(b => {
+    const btnVal = b.dataset.val === 'unsure' ? UNSURE : parseInt(b.dataset.val);
+    b.classList.toggle('selected', btnVal === val);
   });
-  row.classList.toggle('answered', typeof val === 'number');
 }
 
-function refreshAllRows() {
-  PHENOTYPE_QUESTIONS.forEach(p => p.questions.forEach(q => refreshQuestionRow(q.qid)));
-}
-
-function refreshProgress() {
+function refreshAnsweredCount() {
   let answered = 0;
   PHENOTYPE_QUESTIONS.forEach(p => {
-    const n = p.questions.filter(q => typeof state.scores[q.qid] === 'number').length;
-    answered += n;
-    const pill = document.querySelector(`[data-sec-count="${p.code}"]`);
-    if (pill) pill.textContent = n;
-    const navCount = document.querySelector(`[data-nav-count="${p.code}"]`);
-    if (navCount) navCount.textContent = `${n}/${p.questions.length}`;
-    const navA = document.querySelector(`[data-nav-code="${p.code}"]`);
-    if (navA) {
-      navA.classList.toggle('complete', n === p.questions.length);
-      navA.classList.toggle('partial', n > 0 && n < p.questions.length);
+    // Unsure counts as answered — the parent did engage with the question,
+    // they just opted not to give a numeric score. Bumps the progress counter
+    // so parents don't see a stuck "X / 121 answered".
+    p.questions.forEach(q => {
+      const v = state.scores[q.qid];
+      if (typeof v === 'number' || v === UNSURE) answered++;
+    });
+  });
+  const el = document.getElementById('intake-answered');
+  if (el) el.textContent = answered;
+}
+
+function setupIntakeNav() {
+  document.getElementById('intake-back').addEventListener('click', () => {
+    if (state.currentSection > 0) {
+      state.currentSection--;
+      renderIntakeSection();
     }
   });
-  document.getElementById('progress-answered').textContent = answered;
-  const pct = (answered / TOTAL_QUESTIONS) * 100;
-  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('intake-next').addEventListener('click', () => {
+    if (state.currentSection < SECTIONS.length - 1) {
+      state.currentSection++;
+      renderIntakeSection();
+    } else {
+      classify();
+    }
+  });
 }
 
-function refreshToggles() {
-  document.querySelectorAll('[data-hist]').forEach(el => { el.checked = !!state.history[el.dataset.hist]; });
-  document.querySelectorAll('[data-cc]').forEach(el => { el.checked = !!state.cc[el.dataset.cc]; });
-  document.getElementById('child-name').value = state.childName;
-  document.getElementById('child-age').value = state.age;
-  // v1.3.3: prefill email from localStorage or URL param
-  const emailEl = document.getElementById('parent-email');
-  if (emailEl) emailEl.value = state.email || '';
-  // v1.3.7: prefill phone from localStorage or URL param. Normalize to formatted shape
-  // so the input always displays consistently regardless of how the value was stored.
-  const phoneEl = document.getElementById('parent-phone');
-  if (phoneEl) {
-    const rawDigits = (state.phone || '').replace(/\D/g, '').slice(0, 10);
-    const formatted = rawDigits.length > 0 ? formatPhoneNANP(rawDigits) : '';
-    phoneEl.value = formatted;
-    state.phone = formatted; // keep state in sync with displayed value
-  }
-}
-
-// ============================================================
-//  Engine — ported from system_test_runner_v1_2.py via system_demo_v1_2_4.html
-// ============================================================
+// =====================================================
+// ENGINE — verbatim from v1.3.7 (engine v1.3.2)
+// =====================================================
+// Score for a phenotype, computed only over the questions the parent actually
+// answered with a number. "Unsure" answers and missing answers are both excluded
+// from the denominator. If a parent answers 0 of N questions numerically, the score
+// is 0 (treated as LOW) rather than NaN.
 function phenotypePct(p) {
-  const sum = p.questions.reduce((s, q) => s + (state.scores[q.qid] || 0), 0);
-  const max = p.questions.length * 4;
-  return Math.round((sum / max) * 100);
+  let sum = 0, countable = 0;
+  p.questions.forEach(q => {
+    const v = state.scores[q.qid];
+    if (typeof v === 'number') { sum += v; countable++; }
+  });
+  if (countable === 0) return 0;
+  return Math.round((sum / (countable * 4)) * 100);
 }
-
+// Per-phenotype unsure counts — used downstream to surface low-confidence flags.
+// Returns { phenotypeId: { unsure: N, answered: N, total: N, unsureFraction: 0..1 } }.
+function getPhenoUnsureCounts() {
+  const out = {};
+  PHENOTYPE_QUESTIONS.forEach(p => {
+    let unsure = 0, answered = 0;
+    p.questions.forEach(q => {
+      const v = state.scores[q.qid];
+      if (v === UNSURE) unsure++;
+      else if (typeof v === 'number') answered++;
+    });
+    out[p.id] = {
+      unsure, answered, total: p.questions.length,
+      unsureFraction: p.questions.length ? unsure / p.questions.length : 0
+    };
+  });
+  return out;
+}
 function getPhenoPercents() {
   const out = {};
   PHENOTYPE_QUESTIONS.forEach(p => { out[p.id] = phenotypePct(p); });
   return out;
 }
-
-function isHighOrAbove(pid, pcts) { return bandAtLeast(bandOf(pcts[pid] || 0), 'HIGH'); }
-function isModOrAbove(pid, pcts) { return bandAtLeast(bandOf(pcts[pid] || 0), 'MODERATE'); }
+function isHighOrAbove(pid, pcts)  { return bandAtLeast(bandOf(pcts[pid] || 0), 'HIGH'); }
+function isModOrAbove(pid, pcts)   { return bandAtLeast(bandOf(pcts[pid] || 0), 'MODERATE'); }
 function isWatchOrAbove(pid, pcts) { return bandAtLeast(bandOf(pcts[pid] || 0), 'WATCHLIST'); }
 
 function computeCriticalOverrides() {
-  // Derive from raw question scores. Engine reads these as critical flags.
-  const s = state.scores;
-  const c = {};
+  const s = state.scores, c = {};
   if (s.P04_q04 === 4) c.toe_walking = true;
   if (s.P06_q02 === 4 || s.P06_q06 === 4) c.severe_apraxia = true;
   if (s.P01_q10 === 4 && (s.P01_q02 === 4 || s.P01_q03 === 4 || s.P01_q07 === 4 || s.P01_q05 === 4)) c.severe_sleep_sensory = true;
@@ -1461,19 +1253,14 @@ function computeCriticalOverrides() {
 }
 
 function evaluateHistoryFlags() {
-  const h = state.history;
-  const out = [];
-  // Primary birth triggers — fire h_structural_primary_trigger
+  const h = state.history, out = [];
   const primaryBirth = ['forceps_with_asymmetry', 'hypoxia', 'cord_around_neck_hypoxia', 'birth_trauma_diagnosis'];
   const hasPrimaryBirth = primaryBirth.some(k => h[k]);
   const nonspec = ['c_section', 'mild_jaundice'];
   if (nonspec.some(k => h[k]) && !hasPrimaryBirth) out.push('h_birth_complications_watchlist');
   if (hasPrimaryBirth) out.push('h_structural_primary_trigger');
-  // Perinatal mechanical injury subtype
   if (h.forceps_with_asymmetry || h.cord_around_neck_hypoxia || h.birth_nerve_injury) out.push('h_perinatal_mechanical_injury');
-  // Congenital structural — forces clinician-built only
   if (h.genetic_syndrome || h.structural_brain_finding) out.push('h_congenital_structural');
-  // Acquired neurological insult — forces clinician-built only
   if (h.concussion_tbi || h.post_birth_hypoxic_event || h.anesthesia_complication || h.nicu_neuro_respiratory || h.severe_infection_hospitalized) out.push('h_acquired_neurological_insult');
   if (h.regression_in_last_90_days) out.push('h_recent_regression');
   if (h.historic_regression_stable) out.push('h_historic_regression');
@@ -1498,37 +1285,26 @@ function scanCriticalOverrides(critical) {
   return out;
 }
 
-// v1.3.2 drift patch: input-driven safety gates. Now includes Kyle-approved acute_illness_fever + severe_sleep_collapse.
-// Post-routing gates (unclear_classification, severe_dysreg_routing, md_only_module)
-// fire from evaluatePostRoutingGates() since they depend on classification output.
 function evaluateSafetyGates(historyFlags, critical) {
   const fired = [];
-  const h = state.history;
-  const s = state.scores;
+  const h = state.history, s = state.scores;
   if (h.severe_self_injury || h.severe_aggression || h.elopement_risk) fired.push('safety_risk');
   if (critical.severe_food_restriction && h.weight_loss_failure_to_thrive) fired.push('feeding_crisis');
   if (historyFlags.includes('h_recent_regression')) fired.push('recent_regression');
   if (h.active_hyperimmune_flare) fired.push('active_flare');
   if ((s.P10_q02 || 0) >= 3) fired.push('active_seizure');
-  // v1.3.2: acute_illness_fever — start-of-program gate only. Daily state-gate handles ongoing surveillance.
   if (h.currently_ill_or_recovering_48h) fired.push('acute_illness_fever');
-  // v1.3.2: severe_sleep_collapse — fires on P01_q10 = 4 AND at least one corroborating behavior.
-  // Avoids false positives from garden-variety sleep dysregulation. Interaction with active_flare handled
-  // naturally by archetype routing (kid with both lands in Hyperimmune-7 consult-track).
   const sleepSeverity = (s.P01_q10 || 0);
   const sleepCorroborator = h.sleep_lt_4hr_2wk || h.sleep_reversal || h.night_waking_5plus;
   if (sleepSeverity >= 4 && sleepCorroborator) fired.push('severe_sleep_collapse');
   return fired;
 }
 
-// v1.3.1 drift patch: post-routing safety gates. Fire after archetype routing completes.
 function evaluatePostRoutingGates(arch, structuralSubtype) {
   const fired = [];
   if (arch === 'no_template_clinician_consult') fired.push('unclear_classification');
   if (arch === 'severe_dysregulation_10') fired.push('severe_dysreg_routing');
-  if (structuralSubtype && (structuralSubtype.startsWith('congenital') || structuralSubtype.startsWith('acquired'))) {
-    fired.push('md_only_module');
-  }
+  if (structuralSubtype && (structuralSubtype.startsWith('congenital') || structuralSubtype.startsWith('acquired'))) fired.push('md_only_module');
   return fired;
 }
 
@@ -1542,7 +1318,6 @@ function routeArchetype(historyFlags, safetyFired, pcts, critical) {
   if (attentionExecutiveGuard(pcts)) {
     return { arch: 'no_template_clinician_consult', notes: ['Attention/executive-only guard fired'] };
   }
-  // 1. Severe
   const p10High = isHighOrAbove('hyperexcitability_seizure', pcts);
   const nonverbal = state.history.nonverbal_or_minimally_verbal;
   if (p10High && nonverbal) return { arch: 'severe_dysregulation_10', notes: ['Severe: P10 high + nonverbal'] };
@@ -1550,16 +1325,12 @@ function routeArchetype(historyFlags, safetyFired, pcts, critical) {
   if (veryHighCount >= 3 && safetyFired.length > 0) {
     return { arch: 'severe_dysregulation_10', notes: [`Severe: ${veryHighCount} VERY_HIGH phenotypes + safety concerns`] };
   }
-  // 2. Acquired Regression
   if (historyFlags.includes('h_recent_regression') || historyFlags.includes('h_historic_regression')) {
     return { arch: 'acquired_regression_8', notes: ['Regression history flag present'] };
   }
-  // 3. Hyperimmune
   if (isHighOrAbove('pans_pandas_immune_regression', pcts)) {
     return { arch: 'hyperimmune_pans_pandas_7', notes: ['Hyperimmune: P11 HIGH or above'] };
   }
-  // v1.3.1: pattern override softened — STRONG evidence (both triggers) routes to Hyperimmune;
-  // borderline (one trigger only) falls through and gets pans_pandas_watch modifier flag later
   if (isWatchOrAbove('pans_pandas_immune_regression', pcts)) {
     const s = state.scores;
     const suddenOnset = (s.P11_q01 || 0) >= 3 || (s.P11_q02 || 0) >= 3 || (s.P11_q03 || 0) >= 3 || (s.P11_q04 || 0) >= 3;
@@ -1568,16 +1339,11 @@ function routeArchetype(historyFlags, safetyFired, pcts, critical) {
     if (suddenOnset && waxingWaning && support) {
       return { arch: 'hyperimmune_pans_pandas_7', notes: ['Hyperimmune: STRONG pattern (sudden-onset AND recurrent infection + sensory/GI support)'] };
     }
-    if ((suddenOnset || waxingWaning) && support) {
-      // Borderline: defer to Foundational, add watchful monitoring flag downstream
-      state._hyperimmuneBorderline = true;
-    }
+    if ((suddenOnset || waxingWaning) && support) state._hyperimmuneBorderline = true;
   }
-  // 4. Environmental
   if (historyFlags.includes('h_environmental_primary_trigger')) {
     return { arch: 'environmental_neuroinflammatory_6', notes: ['Environmental: history flag with correlation'] };
   }
-  // 5. Birth Trauma / Structural
   const structuralFlags = ['h_structural_primary_trigger', 'h_perinatal_mechanical_injury', 'h_congenital_structural', 'h_acquired_neurological_insult'];
   if (structuralFlags.some(f => historyFlags.includes(f))) {
     let subtype = 'general structural';
@@ -1586,14 +1352,12 @@ function routeArchetype(historyFlags, safetyFired, pcts, critical) {
     else if (historyFlags.includes('h_acquired_neurological_insult')) subtype = 'acquired (clinician-built only)';
     return { arch: 'birth_trauma_structural_4', notes: ['Birth Trauma / Structural: ' + subtype] };
   }
-  // 6. Sensory-Motor
   const p5High = isHighOrAbove('vestibular_cerebellar', pcts);
   const p4High = isHighOrAbove('brainstem_primitive_reflex', pcts);
   const biomedLow = !isHighOrAbove('gi_dysbiosis_histamine', pcts) && !isHighOrAbove('pans_pandas_immune_regression', pcts) && !isHighOrAbove('metabolic_mitochondrial', pcts);
   if (p5High && p4High && biomedLow && historyFlags.length === 0) {
     return { arch: 'sensory_motor_3', notes: ['Sensory-Motor: P05 + P04 HIGH, biomedical low'] };
   }
-  // 7. Foundational (requires developmental signal)
   const bioHigh = isHighOrAbove('metabolic_mitochondrial', pcts) || isHighOrAbove('gi_dysbiosis_histamine', pcts) || isHighOrAbove('arfid_feeding_dysfunction', pcts) || isHighOrAbove('pans_pandas_immune_regression', pcts);
   const devSignal = ['brainstem_primitive_reflex', 'vestibular_cerebellar', 'language_apraxia', 'sensory_autonomic_overload', 'left_hemisphere_fixation', 'right_hemisphere_social_emotional'].some(p => isModOrAbove(p, pcts)) || state.history.developmental_delay;
   if (devSignal && !bioHigh) {
@@ -1629,30 +1393,14 @@ function assembleFlags(arch, forced, pcts, historyFlags) {
     pans_pandas_immune_regression: 'pans_pandas_hyperimmune',
   };
   Object.entries(phenToFlag).forEach(([pid, fid]) => { if (isHighOrAbove(pid, pcts)) flags.add(fid); });
-  // v1.3.1: borderline-Hyperimmune cases that demoted to Foundational get pans_pandas_watch for clinician follow-up
-  if (state._hyperimmuneBorderline && (arch === 'foundational_2' || arch === 'sensory_motor_3')) {
-    flags.add('pans_pandas_watch');
-  }
-  // v1.3.1 drift patch: regression_history_flag fires on either regression history flag
-  if (historyFlags && (historyFlags.includes('h_recent_regression') || historyFlags.includes('h_historic_regression'))) {
-    flags.add('regression_history_flag');
-  }
-  // v1.3.1 drift patch: structural_birth_trauma_history_flag fires when structural history present but archetype isn't Birth Trauma
-  // (per JSON: birth_complications_watchlist alone does NOT activate)
+  if (state._hyperimmuneBorderline && (arch === 'foundational_2' || arch === 'sensory_motor_3')) flags.add('pans_pandas_watch');
+  if (historyFlags && (historyFlags.includes('h_recent_regression') || historyFlags.includes('h_historic_regression'))) flags.add('regression_history_flag');
   if (historyFlags && arch !== 'birth_trauma_structural_4') {
     const structuralActivators = ['h_structural_primary_trigger', 'h_perinatal_mechanical_injury', 'h_congenital_structural', 'h_acquired_neurological_insult'];
-    if (structuralActivators.some(f => historyFlags.includes(f))) {
-      flags.add('structural_birth_trauma_history_flag');
-    }
+    if (structuralActivators.some(f => historyFlags.includes(f))) flags.add('structural_birth_trauma_history_flag');
   }
-  // v1.3.1 drift patch: higher_cognitive_hyperlexia_label (LABEL OVERLAY, not routing) when P12 HIGH or above
-  if (isHighOrAbove('higher_cognitive_hyperlexia', pcts)) {
-    flags.add('higher_cognitive_hyperlexia_label');
-  }
-  // v1.3.2: recent_illness_watch — fires on recent (but not active) illness. Non-blocking, downshifts intensity.
-  if (state.history && state.history.recent_illness_30d && !state.history.currently_ill_or_recovering_48h) {
-    flags.add('recent_illness_watch');
-  }
+  if (isHighOrAbove('higher_cognitive_hyperlexia', pcts)) flags.add('higher_cognitive_hyperlexia_label');
+  if (state.history && state.history.recent_illness_30d && !state.history.currently_ill_or_recovering_48h) flags.add('recent_illness_watch');
   return [...flags].sort();
 }
 
@@ -1690,63 +1438,34 @@ function computeNBSS(historyFlags, pcts) {
   return { domains: d, patterns };
 }
 
+// =====================================================
+// CLASSIFY + SUBMIT
+// =====================================================
 function classify() {
-  // v1.3.3: validate parent email before doing anything else
-  const emailInput = document.getElementById('parent-email');
+  // Re-validate identifiers at submit (defensive — they were checked at Welcome too,
+  // but state could have drifted via localStorage edits or URL prefill changes)
   const email = (state.email || '').trim();
-  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  if (!emailValid) {
-    if (emailInput) {
-      emailInput.style.borderColor = 'var(--rust)';
-      emailInput.focus();
-      emailInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-    alert('Please enter your email before submitting. Dr. Kyle\'s team uses it to follow up about your intake.');
-    return;
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    alert('Please go back and enter a valid email before submitting.');
+    state.currentSection = 0; showScreen('welcome'); return;
   }
-  if (emailInput) emailInput.style.borderColor = '';
+  if ((state.phone || '').replace(/\D/g, '').length !== 10) {
+    alert('Please go back and enter a 10-digit phone number before submitting.');
+    state.currentSection = 0; showScreen('welcome'); return;
+  }
 
-  // v1.3.7: validate parent phone. Rule: exactly 10 digits (US/Canada NANP format).
-  // The phone input is auto-formatted to (XXX) XXX-XXXX as the parent types; this validation
-  // is the backstop in case formatting was bypassed somehow (paste, autofill, etc.).
-  const phoneInput = document.getElementById('parent-phone');
-  const phone = (state.phone || '').trim();
-  const phoneDigits = phone.replace(/\D/g, '');
-  const phoneValid = phoneDigits.length === 10;
-  if (!phoneValid) {
-    if (phoneInput) {
-      phoneInput.style.borderColor = 'var(--rust)';
-      phoneInput.focus();
-      phoneInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-    alert('Please enter a 10-digit US phone number, e.g. (555) 123-4567. Dr. Kyle\'s team uses it as a backup if email doesn\'t reach you.');
-    return;
-  }
-  if (phoneInput) phoneInput.style.borderColor = '';
-
-  // v1.3.4: debounce guard. Must happen AFTER validation — bad input should not lock the button.
-  // Guard against double-clicks, duplicate enrollments, and post-success resubmissions.
-  if (submitPhase === 'submitting') {
-    // Already in flight. Belt-and-suspenders — button is also disabled, but the click might have
-    // landed in the gap between event dispatch and the disabled attribute taking effect.
-    return;
-  }
-  if (submitPhase === 'submitted_success') {
-    // Terminal state. User has to Clear & restart to submit a new intake.
-    return;
-  }
-  // submitPhase is 'idle' or 'submitted_failed' — acquire the lock and proceed.
+  if (submitPhase === 'submitting') return;
+  if (submitPhase === 'submitted_success') return;
   submitPhase = 'submitting';
-  const myGen = ++submitGeneration; // capture for callback closures below
-  setSubmitButtonPhase('submitting');
-  showInlineSubmitNote(null); // clear any prior failure message
+  const myGen = ++submitGeneration;
 
-  // v1.3.4: wrap routing-engine work in try/catch so a synchronous throw can't strand the button.
+  // Move to processing screen + animate
+  showScreen('processing');
+  animateProcessing();
+
   let result;
   try {
-    // v1.3.1: reset transient borderline flag
     state._hyperimmuneBorderline = false;
-
     const pcts = getPhenoPercents();
     const critical = computeCriticalOverrides();
     const historyFlags = evaluateHistoryFlags();
@@ -1754,99 +1473,108 @@ function classify() {
     const safetyFired = evaluateSafetyGates(historyFlags, critical);
     const { arch, notes } = routeArchetype(historyFlags, safetyFired, pcts, critical);
     const subtype = getSubtype(arch, historyFlags, pcts);
-    // v1.3.1 drift patch: post-routing safety gates fire after archetype is known
     const postRoutingGates = evaluatePostRoutingGates(arch, subtype);
     postRoutingGates.forEach(g => { if (!safetyFired.includes(g)) safetyFired.push(g); });
     const flags = assembleFlags(arch, overrides.flags, pcts, historyFlags);
     const nbss = computeNBSS(historyFlags, pcts);
 
+    // Unsure-tracking: per-phenotype counts + a low-confidence flag for any
+    // phenotype where the parent marked >50% of questions Unsure. Doesn't change
+    // routing — just surfaces to the clinician that the percentage for that
+    // phenotype is built on thin data. (Threshold 0.5 picked to be conservative;
+    // a parent who couldn't answer half a section is signaling real uncertainty,
+    // not just a missed item or two.)
+    const unsureCounts = getPhenoUnsureCounts();
+    const lowConfidencePhenotypes = Object.entries(unsureCounts)
+      .filter(([_, c]) => c.unsureFraction > 0.5)
+      .map(([pid]) => pid);
+    if (lowConfidencePhenotypes.length > 0 && !flags.includes('low_confidence_intake')) {
+      flags.push('low_confidence_intake');
+      flags.sort();
+    }
+
     let autoRoute = safetyFired.length === 0 && arch !== 'no_template_clinician_consult' && arch !== 'severe_dysregulation_10';
     if (historyFlags.includes('h_recent_regression')) autoRoute = false;
     if (historyFlags.includes('h_congenital_structural') || historyFlags.includes('h_acquired_neurological_insult')) autoRoute = false;
 
-    // v1.3.1: TWO-TRACK ROUTING — home_intensive_candidate decision.
-    // Home intensive is for Foundational + Sensory-Motor only. Everyone else routes to consult-track.
-    // Blocking safety gates always force consult regardless of archetype.
     const intensiveArchetypes = ['foundational_2', 'sensory_motor_3'];
     const blockingGates = ['active_seizure', 'feeding_crisis', 'recent_regression', 'active_flare', 'safety_risk', 'severe_dysreg_routing', 'md_only_module', 'unclear_classification', 'acute_illness_fever', 'severe_sleep_collapse'];
     const hasBlockingGate = safetyFired.some(g => blockingGates.includes(g));
     const home_intensive_candidate = intensiveArchetypes.includes(arch) && !hasBlockingGate;
     const consult_track = !home_intensive_candidate;
 
-    result = { arch, subtype, flags, historyFlags, safetyFired, overrides, autoRoute, home_intensive_candidate, consult_track, nbss, notes, pcts };
-    render(result);
+    result = { arch, subtype, flags, historyFlags, safetyFired, overrides, autoRoute, home_intensive_candidate, consult_track, nbss, notes, pcts, unsureCounts, lowConfidencePhenotypes };
   } catch (e) {
-    // Routing engine threw — release the lock so user can retry. Don't fire the webhook with bad data.
     console.error('Routing engine error in classify():', e);
     submitPhase = 'submitted_failed';
-    setSubmitButtonPhase('submitted_failed');
     showInlineSubmitNote('Something went wrong computing your results. Please try again, or reach out to Dr. Kyle\'s team if this keeps happening.');
+    showScreen('thanks');
     return;
   }
 
-  // v1.3.4: submit with timeout race. Three outcomes:
-  //   - success: webhook returned 2xx within 30s. Terminal lock — user can't resubmit same intake.
-  //   - failure: webhook errored OR timed out. Re-enable button + show inline note + log to console.
-  //   - timeout: 30s passed with no response. Treated as failure. The POST may still arrive later
-  //     server-side, which is fine — GHL re-enrollment cooldown (see deferred items) is the
-  //     belt-and-suspenders defense against that case creating a duplicate enrollment.
   const submitPromise = submitIntake(result);
-  const timeoutPromise = new Promise((_, reject) =>
-    setTimeout(() => reject(new Error('SUBMISSION_TIMEOUT')), SUBMISSION_TIMEOUT_MS)
-  );
+  const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('SUBMISSION_TIMEOUT')), SUBMISSION_TIMEOUT_MS));
 
   Promise.race([submitPromise, timeoutPromise])
     .then(() => {
-      // v1.3.4: ignore stale wins — if a newer attempt started, this response is from a prior one.
       if (myGen !== submitGeneration) return;
       submitPhase = 'submitted_success';
-      setSubmitButtonPhase('submitted_success');
+      // Hold processing screen briefly for legibility, then thanks
+      setTimeout(() => renderThanks(result, /*succeeded=*/true), 1200);
     })
     .catch(err => {
       console.error('Intake submission failed:', err);
-      // v1.3.4: same stale-callback guard. A timeout firing for a prior attempt shouldn't
-      // flip a newer attempt's state to failed.
       if (myGen !== submitGeneration) return;
       submitPhase = 'submitted_failed';
-      setSubmitButtonPhase('submitted_failed');
       const isTimeout = err && err.message === 'SUBMISSION_TIMEOUT';
-      showInlineSubmitNote(isTimeout
-        ? 'The submission is taking longer than expected. Your answers are saved on this device. Please try again — if it keeps happening, reach out to Dr. Kyle\'s team.'
-        : 'We saved your answers locally but the submission to our system didn\'t go through. Please try again — if it keeps happening, reach out to Dr. Kyle\'s team.'
-      );
+      setTimeout(() => {
+        renderThanks(result, /*succeeded=*/false);
+        showInlineSubmitNote(isTimeout
+          ? 'The submission is taking longer than expected. Your answers are saved on this device. Please try again — if it keeps happening, reach out to Dr. Kyle\'s team.'
+          : 'We saved your answers locally but the submission to our system didn\'t go through. Please try again — if it keeps happening, reach out to Dr. Kyle\'s team.'
+        );
+      }, 800);
     });
 }
 
-// ============================================================
-//  GHL webhook submission (v1.3.3)
-// ============================================================
-// Maps the routing engine output to the GHL Inbound Webhook payload shape.
-// Field names here MUST match the keys configured in the GHL trigger's sample
-// payload mapping (see intake_workflow_field_mapping_spec.md). Changes here
-// without a corresponding trigger remap will silently drop those fields.
+function animateProcessing() {
+  const statuses = [
+    'Analyzing phenotype scores…',
+    'Applying history flags…',
+    'Running archetype routing…',
+    'Composing modifier flags…',
+    'Computing brain stress score…',
+    'Saving your intake…'
+  ];
+  let i = 0;
+  const el = document.getElementById('processing-status');
+  el.textContent = statuses[0];
+  const interval = setInterval(() => {
+    i++;
+    if (i >= statuses.length) { clearInterval(interval); return; }
+    el.textContent = statuses[i];
+  }, 350);
+}
+
+// =====================================================
+// GHL WEBHOOK — identical payload shape to v1.3.7
+// =====================================================
 async function submitIntake(r) {
   const pcts = r.pcts || {};
-  // Round pcts to integers so GHL doesn't store 73.4827... as a value.
   const round = (v) => (v == null ? 0 : Math.round(v));
 
   const payload = {
-    // Identity (#1-#3)
     email: state.email,
     phone: state.phone,
     child_first_name: state.childName || '',
     primary_archetype: r.arch || '',
-    // Subtype (#4)
     archetype_subtype: r.subtype || '',
-    // Two-track routing booleans (#5-#7)
     home_intensive_candidate: r.home_intensive_candidate ? 'true' : 'false',
     consult_track: r.consult_track ? 'true' : 'false',
     auto_route_ok: r.autoRoute ? 'true' : 'false',
-    // Flags as JSON-array strings (#8-#10)
-    // Stored as stringified arrays since GHL fields are text — clinician can read directly.
     safety_gates_fired: JSON.stringify(r.safetyFired || []),
     modifier_flags: JSON.stringify(r.flags || []),
     history_flags: JSON.stringify(r.historyFlags || []),
-    // P-scores (#11-#22) — sent as integer percentages 0-100
     p01_sensory_autonomic_score: round(pcts.sensory_autonomic_overload),
     p02_left_hemisphere_score: round(pcts.left_hemisphere_fixation),
     p03_right_hemisphere_score: round(pcts.right_hemisphere_social_emotional),
@@ -1859,7 +1587,6 @@ async function submitIntake(r) {
     p10_hyperexcitability_score: round(pcts.hyperexcitability_seizure),
     p11_pans_pandas_score: round(pcts.pans_pandas_immune_regression),
     p12_higher_cognitive_score: round(pcts.higher_cognitive_hyperlexia),
-    // NBSS domain scores (#23-#32) — sent as integers 0-4
     nbss_gut_brain_axis: r.nbss?.domains?.gut_brain_axis ?? 0,
     nbss_environmental_toxic_load: r.nbss?.domains?.environmental_toxic_load ?? 0,
     nbss_neuroimmune_activation: r.nbss?.domains?.neuroimmune_activation ?? 0,
@@ -1870,7 +1597,11 @@ async function submitIntake(r) {
     nbss_circadian_rhythm: r.nbss?.domains?.circadian_rhythm ?? 0,
     nbss_developmental_brain_organization: r.nbss?.domains?.developmental_brain_organization ?? 0,
     nbss_sensory_safety: r.nbss?.domains?.sensory_safety ?? 0,
-    // Raw blob (#33, deferred binding) — full input snapshot for clinical review / debugging
+    // Unsure tracking — flat fields so clinician can filter/sort in GHL without
+    // parsing raw_intake_json. low_confidence_phenotypes lists any P0X with >50%
+    // unsure answers; total_unsure_count is the running total across all 121.
+    low_confidence_phenotypes: JSON.stringify(r.lowConfidencePhenotypes || []),
+    total_unsure_count: Object.values(r.unsureCounts || {}).reduce((s, c) => s + c.unsure, 0),
     raw_intake_json: JSON.stringify({
       scores: state.scores,
       history: state.history,
@@ -1880,18 +1611,12 @@ async function submitIntake(r) {
       email: state.email,
       phone: state.phone,
       contactId: state.contactId,
-      computed: {
-        pcts: pcts,
-        nbss: r.nbss,
-        notes: r.notes
-      }
+      computed: { pcts, nbss: r.nbss, notes: r.notes, unsureCounts: r.unsureCounts }
     }),
-    // Metadata (deferred bindings — sent so they're available when bound)
     intake_submitted_at: new Date().toISOString(),
     intake_engine_version: INTAKE_ENGINE_VERSION,
     intake_form_version: INTAKE_FORM_VERSION,
     lead_source_intake: 'heterogeneity_intake',
-    // Magic-link contact ID if present (helps GHL match to existing contact)
     contact_id: state.contactId || ''
   };
 
@@ -1900,137 +1625,50 @@ async function submitIntake(r) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
   });
-
-  if (!response.ok) {
-    throw new Error('Webhook responded ' + response.status + ' ' + response.statusText);
-  }
+  if (!response.ok) throw new Error('Webhook responded ' + response.status + ' ' + response.statusText);
   return response;
 }
 
-// ============================================================
-//  v1.3.4: Submit-button state helpers
-// ============================================================
-// Centralized so we can't get into a half-set state (e.g. disabled but with success text).
-// Note parameter name is `phase` (not `state`) to avoid shadowing the global `state` object.
-function setSubmitButtonPhase(phase) {
-  const btn = document.getElementById('btn-classify');
-  if (!btn) return;
-  switch (phase) {
-    case 'idle':
-      btn.disabled = false;
-      btn.textContent = 'Submit intake';
-      break;
-    case 'submitting':
-      btn.disabled = true;
-      btn.textContent = 'Submitting…';
-      break;
-    case 'submitted_success':
-      btn.disabled = true;
-      btn.textContent = 'Submitted ✓';
-      break;
-    case 'submitted_failed':
-      btn.disabled = false;
-      btn.textContent = 'Try again';
-      break;
-  }
-}
-
-// Inserts/removes a small inline note below the submit button. Used on submission failure
-// to honestly tell the parent that the network submission didn't go through, even though
-// the result panel is already showing. Hidden by default; appears only on failure.
-function showInlineSubmitNote(text) {
-  let note = document.getElementById('submit-inline-note');
-  if (!note) {
-    const actions = document.querySelector('.actions');
-    if (!actions) return;
-    note = document.createElement('div');
-    note.id = 'submit-inline-note';
-    note.style.cssText = 'flex-basis:100%;margin-top:8px;padding:10px 14px;background:var(--rust-soft);border-left:3px solid var(--rust);border-radius:4px;font-size:13px;color:var(--ink-soft);line-height:1.5;';
-    actions.appendChild(note);
-  }
-  if (text) {
-    note.textContent = text;
-    note.style.display = 'block';
-  } else {
-    note.style.display = 'none';
-  }
-}
-
-// ============================================================
-//  Render result panel
-// ============================================================
-function render(r) {
-  const resultPanel = document.getElementById('result');
-
-  // v1.3.1: populate eligibility banner + branched thanks message
-  populateEligibilityBanner(r);
-  populateThanksMessage(r);
-
-  resultPanel.classList.add('show');
-  setTimeout(() => resultPanel.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
-}
-
-// ============================================================
-//  v1.3.1: Eligibility banner + branched thanks message
-// ============================================================
-function populateEligibilityBanner(r) {
+// =====================================================
+// THANKS RENDER
+// =====================================================
+function renderThanks(r, succeeded) {
+  // Eligibility banner — parent-facing only. Clinician overlay stays internal (sent in webhook payload).
   const banner = document.getElementById('eligibility-banner');
   const icon = document.getElementById('eligibility-icon');
   const title = document.getElementById('eligibility-title');
   const sub = document.getElementById('eligibility-sub');
-  const meta = document.getElementById('eligibility-meta');
 
   if (r.home_intensive_candidate) {
     banner.className = 'eligibility-banner eligible';
     icon.textContent = '✓';
     title.textContent = 'Your child looks like a strong fit for our 8-week home intensive';
     sub.textContent = "Based on your answers, our home intensive program looks like a good match. Dr. Kyle's team will dig into the details on your call — bring any questions you'd like to talk through.";
-    meta.innerHTML = '';
   } else {
     banner.className = 'eligibility-banner consult';
     icon.textContent = '→';
     title.textContent = "There's a lot to dig into on your call";
     sub.textContent = "Your answers gave Dr. Kyle's team a clear starting picture of your child. They'll have specific things to talk through with you — bring any questions you'd like to ask, and they'll walk you through what they're seeing.";
-    meta.innerHTML = '';
   }
   banner.style.display = 'flex';
-}
 
-function populateThanksMessage(r) {
-  const el = document.getElementById('thanks-message');
-  // Both routes get the same call-aware acknowledgment; the eligibility banner
-  // below is the only thing that visibly differs by route.
-  el.textContent = "Your intake has been saved. Dr. Kyle's team will review your answers before your call so they can come in already knowing your child.";
-}
-
-// ============================================================
-//  Wire events
-// ============================================================
-document.addEventListener('change', (e) => {
-  const t = e.target;
-  if (t.dataset && t.dataset.hist !== undefined) {
-    state.history[t.dataset.hist] = t.checked;
-    saveToStorage();
-  } else if (t.dataset && t.dataset.cc !== undefined) {
-    state.cc[t.dataset.cc] = t.checked;
-    saveToStorage();
-  } else if (t.id === 'child-name') {
-    state.childName = t.value;
-    saveToStorage();
-  } else if (t.id === 'child-age') {
-    state.age = parseInt(t.value) || 5;
-    saveToStorage();
-  } else if (t.id === 'parent-email') {
-    state.email = t.value.trim();
-    saveToStorage();
+  if (!succeeded) {
+    // Inline note will be shown by caller. Still render banner so parent sees something useful.
   }
-  // v1.3.7: parent-phone handled by dedicated input-listener below (handles formatting too)
-});
 
-// v1.3.7: as-you-type phone formatter — US/Canada (XXX) XXX-XXXX format.
-// Strips non-digit characters, caps at 10 digits, rebuilds the canonical shape.
-// Preserves cursor position by counting digits before the cursor in the raw input
-// and placing the cursor after that same digit count in the formatted output.
+  showScreen('thanks');
+}
+
+function showInlineSubmitNote(text) {
+  const note = document.getElementById('submit-inline-note');
+  if (!note) return;
+  if (text) { note.textContent = text; note.classList.add('show'); }
+  else { note.classList.remove('show'); }
+}
+
+// =====================================================
+// PHONE FORMATTER — lifted from v1.3.7
+// =====================================================
 function formatPhoneNANP(digits) {
   if (digits.length === 0) return '';
   if (digits.length <= 3) return '(' + digits;
@@ -2038,67 +1676,23 @@ function formatPhoneNANP(digits) {
   return '(' + digits.slice(0, 3) + ') ' + digits.slice(3, 6) + '-' + digits.slice(6, 10);
 }
 
-const phoneInputEl = document.getElementById('parent-phone');
-if (phoneInputEl) {
-  phoneInputEl.addEventListener('input', (e) => {
-    const input = e.target;
-    const oldValue = input.value;
-    const oldCursor = input.selectionStart || 0;
-    // Count how many digits exist before the cursor in the raw input — this is the
-    // anchor we'll use to place the cursor after reformatting.
-    const digitsBeforeCursor = oldValue.slice(0, oldCursor).replace(/\D/g, '').length;
-    // Strip everything but digits, cap at 10
-    const allDigits = oldValue.replace(/\D/g, '').slice(0, 10);
-    const formatted = formatPhoneNANP(allDigits);
-    input.value = formatted;
-    // Walk the formatted string until we've passed `digitsBeforeCursor` digits,
-    // then place the cursor right after that position.
-    let newCursor = 0;
-    let digitsSeen = 0;
-    for (let i = 0; i < formatted.length; i++) {
-      if (digitsSeen >= digitsBeforeCursor) break;
-      if (/\d/.test(formatted[i])) digitsSeen++;
-      newCursor = i + 1;
-    }
-    input.setSelectionRange(newCursor, newCursor);
-    // Mirror the formatted value into state so it persists and submits correctly
-    state.phone = formatted;
-    saveToStorage();
-  });
-}
-
-document.getElementById('btn-classify').addEventListener('click', classify);
-document.getElementById('btn-scroll-top').addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-document.getElementById('btn-clear').addEventListener('click', () => {
-  if (!confirm('Clear all answers and start over? This cannot be undone.')) return;
-  state.scores = {};
-  state.history = {};
-  state.cc = {};
-  state.childName = '';
-  state.age = 5;
-  state.email = '';
-  state.phone = '';
-  // Note: contactId preserved — it came from URL, not user input
-  saveToStorage();
-  // v1.3.4: reset submit phase so user can submit again after clearing.
-  submitPhase = 'idle';
-  setSubmitButtonPhase('idle');
-  showInlineSubmitNote(null);
-  refreshAllRows();
-  refreshToggles();
-  refreshProgress();
-  document.getElementById('result').classList.remove('show');
+// =====================================================
+// THANKS → review (jump back to intake at section 0)
+// =====================================================
+document.getElementById('thanks-review').addEventListener('click', () => {
+  // Allow the parent to revisit and edit; submission is locked at 'submitted_success'
+  // so they can't double-submit. If they want to truly re-submit, they'd need a fresh form.
+  state.currentSection = 0;
+  renderIntakeSection();
+  showScreen('intake');
 });
 
-// ============================================================
-//  Initialise
-// ============================================================
+// =====================================================
+// INIT
+// =====================================================
 loadFromStorage();
-buildSections();
-refreshAllRows();
-refreshToggles();
-refreshProgress();
-setSubmitButtonPhase(submitPhase);
+setupWelcome();
+setupIntakeNav();
 </script>
 </body>
 </html>
