@@ -130,7 +130,6 @@ em { font-style: italic; color: var(--accent); }
 }
 @media (max-width: 540px) { .welcome-fields { grid-template-columns: 1fr; } }
 .field-block { display: flex; flex-direction: column; gap: 6px; }
-.field-block-full { grid-column: 1 / -1; }
 .field-label {
   font-size: 11px;
   font-weight: 600;
@@ -330,6 +329,12 @@ em { font-style: italic; color: var(--accent); }
 }
 .likert-btn.likert-unsure.selected .likert-val { color: var(--ink-2); }
 @media (max-width: 540px) {
+  /* On narrow phones, force the 0-4 scale buttons onto a single row.
+     Default min-width: 72px causes them to wrap awkwardly (0-3 on row 1,
+     4 alone on row 2, Unsure alone on row 3). Reducing min-width and padding
+     lets all 5 scale buttons fit together; Unsure gets its own full-width row. */
+  .likert-btn { min-width: 0; padding: 10px 6px; font-size: 12px; }
+  .likert-btn .likert-val { font-size: 14px; }
   .likert-btn.likert-unsure { margin-left: 0; flex-basis: 100%; }
 }
 
@@ -569,44 +574,17 @@ footer.foot code { font-family: ui-monospace, monospace; color: var(--accent); }
 
     <div class="welcome-fields">
       <div class="field-block">
-        <label class="field-label" for="parent-first-name">Your first name <span class="req">*</span></label>
-        <input class="field-input" id="parent-first-name" type="text" placeholder="e.g. Sarah" required autocomplete="given-name">
-      </div>
-      <div class="field-block">
-        <label class="field-label" for="parent-last-name">Your last name <span class="req">*</span></label>
-        <input class="field-input" id="parent-last-name" type="text" placeholder="e.g. Martinez" required autocomplete="family-name">
+        <label class="field-label" for="parent-email">Your email <span class="req">*</span></label>
+        <input class="field-input" id="parent-email" type="email" placeholder="parent@example.com" required autocomplete="email">
+        <div class="field-help">Required — used to identify this intake and follow up.</div>
       </div>
       <div class="field-block">
         <label class="field-label" for="parent-phone">Your phone <span class="req">*</span></label>
         <input class="field-input" id="parent-phone" type="tel" placeholder="(555) 123-4567" required autocomplete="tel" maxlength="14">
       </div>
       <div class="field-block">
-        <label class="field-label" for="parent-email">Your email <span class="req">*</span></label>
-        <input class="field-input" id="parent-email" type="email" placeholder="parent@example.com" required autocomplete="email">
-        <div class="field-help">Used to identify this intake and follow up.</div>
-      </div>
-      <div class="field-block field-block-full">
-        <label class="field-label" for="parent-state">State of residence <span class="req">*</span></label>
-        <select class="field-input" id="parent-state" required autocomplete="address-level1">
-          <option value="">Select your state…</option>
-          <option value="AL">Alabama</option><option value="AK">Alaska</option><option value="AZ">Arizona</option><option value="AR">Arkansas</option>
-          <option value="CA">California</option><option value="CO">Colorado</option><option value="CT">Connecticut</option><option value="DE">Delaware</option>
-          <option value="DC">District of Columbia</option><option value="FL">Florida</option><option value="GA">Georgia</option><option value="HI">Hawaii</option>
-          <option value="ID">Idaho</option><option value="IL">Illinois</option><option value="IN">Indiana</option><option value="IA">Iowa</option>
-          <option value="KS">Kansas</option><option value="KY">Kentucky</option><option value="LA">Louisiana</option><option value="ME">Maine</option>
-          <option value="MD">Maryland</option><option value="MA">Massachusetts</option><option value="MI">Michigan</option><option value="MN">Minnesota</option>
-          <option value="MS">Mississippi</option><option value="MO">Missouri</option><option value="MT">Montana</option><option value="NE">Nebraska</option>
-          <option value="NV">Nevada</option><option value="NH">New Hampshire</option><option value="NJ">New Jersey</option><option value="NM">New Mexico</option>
-          <option value="NY">New York</option><option value="NC">North Carolina</option><option value="ND">North Dakota</option><option value="OH">Ohio</option>
-          <option value="OK">Oklahoma</option><option value="OR">Oregon</option><option value="PA">Pennsylvania</option><option value="RI">Rhode Island</option>
-          <option value="SC">South Carolina</option><option value="SD">South Dakota</option><option value="TN">Tennessee</option><option value="TX">Texas</option>
-          <option value="UT">Utah</option><option value="VT">Vermont</option><option value="VA">Virginia</option><option value="WA">Washington</option>
-          <option value="WV">West Virginia</option><option value="WI">Wisconsin</option><option value="WY">Wyoming</option>
-        </select>
-      </div>
-      <div class="field-block">
-        <label class="field-label" for="child-name">Child's first name <span class="req">*</span></label>
-        <input class="field-input" id="child-name" type="text" placeholder="e.g. Lily" required>
+        <label class="field-label" for="child-name">Child's name (optional)</label>
+        <input class="field-input" id="child-name" type="text" placeholder="e.g. Lily">
       </div>
       <div class="field-block">
         <label class="field-label" for="child-age">Age (years)</label>
@@ -947,9 +925,6 @@ const state = {
   scores: {},
   history: {},
   cc: {},
-  parentFirstName: '',
-  parentLastName: '',
-  parentState: '',
   childName: '',
   age: 5,
   email: '',
@@ -966,9 +941,6 @@ function loadFromStorage() {
       Object.assign(state.scores, parsed.scores || {});
       Object.assign(state.history, parsed.history || {});
       Object.assign(state.cc, parsed.cc || {});
-      state.parentFirstName = parsed.parentFirstName || '';
-      state.parentLastName = parsed.parentLastName || '';
-      state.parentState = parsed.parentState || '';
       state.childName = parsed.childName || '';
       state.age = parsed.age || 5;
       state.email = parsed.email || '';
@@ -1017,17 +989,11 @@ function showScreen(name) {
 // WELCOME → INTAKE
 // =====================================================
 function setupWelcome() {
-  const firstNameEl = document.getElementById('parent-first-name');
-  const lastNameEl  = document.getElementById('parent-last-name');
-  const stateEl     = document.getElementById('parent-state');
   const emailEl = document.getElementById('parent-email');
   const phoneEl = document.getElementById('parent-phone');
   const nameEl  = document.getElementById('child-name');
   const ageEl   = document.getElementById('child-age');
 
-  firstNameEl.value = state.parentFirstName || '';
-  lastNameEl.value  = state.parentLastName || '';
-  stateEl.value     = state.parentState || '';
   emailEl.value = state.email || '';
   nameEl.value  = state.childName || '';
   ageEl.value   = state.age || 5;
@@ -1036,9 +1002,6 @@ function setupWelcome() {
   phoneEl.value = rawDigits.length > 0 ? formatPhoneNANP(rawDigits) : '';
   state.phone = phoneEl.value;
 
-  firstNameEl.addEventListener('input', () => { state.parentFirstName = firstNameEl.value.trim(); saveToStorage(); });
-  lastNameEl.addEventListener('input',  () => { state.parentLastName  = lastNameEl.value.trim();  saveToStorage(); });
-  stateEl.addEventListener('change',    () => { state.parentState     = stateEl.value;            saveToStorage(); });
   emailEl.addEventListener('input', () => { state.email = emailEl.value.trim(); saveToStorage(); });
   nameEl.addEventListener('input',  () => { state.childName = nameEl.value; saveToStorage(); });
   ageEl.addEventListener('input',   () => { state.age = parseInt(ageEl.value) || 5; saveToStorage(); });
@@ -1065,44 +1028,7 @@ function setupWelcome() {
 
   document.getElementById('welcome-begin').addEventListener('click', () => {
     // Validate identifiers before letting them through to the intake.
-    // Engine + payload require parent identity, child identity, state (for licensure),
-    // valid email, 10-digit phone.
-    const parentFirst = (state.parentFirstName || '').trim();
-    if (!parentFirst) {
-      firstNameEl.style.borderColor = 'var(--danger)';
-      firstNameEl.focus();
-      alert('Please enter your first name.');
-      return;
-    }
-    firstNameEl.style.borderColor = '';
-
-    const parentLast = (state.parentLastName || '').trim();
-    if (!parentLast) {
-      lastNameEl.style.borderColor = 'var(--danger)';
-      lastNameEl.focus();
-      alert('Please enter your last name.');
-      return;
-    }
-    lastNameEl.style.borderColor = '';
-
-    const parentState = (state.parentState || '').trim();
-    if (!parentState) {
-      stateEl.style.borderColor = 'var(--danger)';
-      stateEl.focus();
-      alert('Please select your state of residence. Dr. Kyle\'s team uses this to confirm licensure before your call.');
-      return;
-    }
-    stateEl.style.borderColor = '';
-
-    const childFirst = (state.childName || '').trim();
-    if (!childFirst) {
-      nameEl.style.borderColor = 'var(--danger)';
-      nameEl.focus();
-      alert('Please enter your child\'s first name.');
-      return;
-    }
-    nameEl.style.borderColor = '';
-
+    // Engine + payload require valid email + 10-digit phone.
     const email = (state.email || '').trim();
     const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     if (!emailValid) {
@@ -1131,6 +1057,11 @@ function setupWelcome() {
 // INTAKE RENDERING
 // =====================================================
 function renderIntakeSection() {
+  // Scroll to top of page on every section change. Without this, hitting "Next"
+  // keeps the browser's scroll position from the previous section, leaving the
+  // parent stranded at the bottom of the new page.
+  window.scrollTo(0, 0);
+
   const section = SECTIONS[state.currentSection];
   const isHistory = section.code === 'HX';
   const sectionNum = state.currentSection + 1;
@@ -1646,9 +1577,6 @@ async function submitIntake(r) {
   const payload = {
     email: state.email,
     phone: state.phone,
-    parent_first_name: state.parentFirstName || '',
-    parent_last_name: state.parentLastName || '',
-    state_of_residence: state.parentState || '',
     child_first_name: state.childName || '',
     primary_archetype: r.arch || '',
     archetype_subtype: r.subtype || '',
@@ -1689,9 +1617,6 @@ async function submitIntake(r) {
       scores: state.scores,
       history: state.history,
       cc: state.cc,
-      parentFirstName: state.parentFirstName,
-      parentLastName: state.parentLastName,
-      parentState: state.parentState,
       childName: state.childName,
       age: state.age,
       email: state.email,
